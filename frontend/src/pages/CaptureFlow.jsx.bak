@@ -1,0 +1,928 @@
+/**
+ * CaptureFlow.jsx — Phase 3 Redesign
+ *
+ * Captures front + side photos, validates them, then enters the
+ * Landmark Correction screen.
+ *
+ * KEY UX DECISION — Drag Pad:
+ *   Landmark correction uses a spatially-decoupled "joystick pad"
+ *   at the bottom of the screen (thumb-reachable zone) rather than
+ *   direct-drag on the point. This eliminates thumb-occlusion and
+ *   enables precise sub-pixel control without the user's finger
+ *   blocking what they're trying to see.
+ *   A magnifier loupe (72px circle, 3× zoom) renders above the
+ *   selected point in the photo, giving precision feedback.
+ *
+ * ⚠ ASSUMPTION: WebSocket live-guidance messages have shape:
+ *   { status: 'ok' | 'adjust' | 'error', message: string }
+ */
+
+import { useCallback, useEffect, useRef, useState } from 'react';
+import {
+  AlertCircle,
+  ArrowLeft,
+  Camera,
+  Check,
+  CheckCircle2,
+  Image as ImageIcon,
+  RefreshCw,
+  RotateCcw,
+  ShieldCheck,
+  ZoomIn,
+} from 'lucide-react';
+import { useNavigate, useParams } from 'react-router-dom';
+import {
+  useAccurateEstimate,
+  useConfirmPoints,
+  useFastEstimate,
+  useSession,
+  useUploadFrame,
+  useValidateFrame,
+} from '../api/hooks';
+import { Banner } from '../components/ui/Banner';
+import { Button } from '../components/ui/Button';
+import { Card } from '../components/ui/Card';
+import { StepIndicator } from '../components/ui/StepIndicator';
+
+/* ── Step map ───────────────────────────────────────────────────────── */
+const STEP_LABELS = {
+  2: 'Before you start',
+  3: 'Front photo',
+  4: 'Side photo',
+  5: 'Check your points',
+};
+
+/* ── Point tier helpers ─────────────────────────────────────────────── */
+const tierColor = (point) => {
+  if (!point) return '#4CAF7D';
+  const conf = point.confidence ?? 1;
+  if (point.tier === 'LOW' || conf < 0.45) return 'var(--color-danger)';
+  if (point.tier === 'MEDIUM' || conf < 0.75) return 'var(--color-brass)';
+  return 'var(--color-success)';
+};
+
+const POINT_FRIENDLY_NAMES = {
+  nose: 'Nose',
+  left_eye: 'L. Eye',
+  left_shoulder: 'L. Shoulder',
+  right_shoulder: 'R. Shoulder',
+  left_elbow: 'L. Elbow',
+  right_elbow: 'R. Elbow',
+  left_wrist: 'L. Wrist',
+  right_wrist: 'R. Wrist',
+  left_hip: 'L. Hip',
+  right_hip: 'R. Hip',
+  left_knee: 'L. Knee',
+  right_knee: 'R. Knee',
+  left_ankle: 'L. Ankle',
+  right_ankle: 'R. Ankle',
+};
+
+/* ── Drag pad constants ─────────────────────────────────────────────── */
+const PAD_RADIUS = 44; // max thumb travel in px from center
+const PAD_SCALE = 0.006; // how much pad travel translates to normalized coords
+
+/* ════════════════════════════════════════════════════════════════════
+   Main Component
+   ════════════════════════════════════════════════════════════════════ */
+export default function CaptureFlow() {
+  const { sessionId } = useParams();
+  const navigate = useNavigate();
+  const { data: session } = useSession(sessionId);
+  const upload = useUploadFrame();
+  const validate = useValidateFrame();
+  const confirm = useConfirmPoints();
+  const fast = useFastEstimate();
+  const accurate = useAccurateEstimate();
+
+  const [step, setStep] = useState(2);
+  const [direction, setDirection] = useState('forward');
+  const [frames, setFrames] = useState({ A: null, B: null });
+  const [rejectionError, setRejectionError] = useState(null); // { message, hints }
+  const [selectedPoint, setSelectedPoint] = useState(null); // { pose, index }
+  const [undo, setUndo] = useState([]);
+
+  // Auto-navigate once processing
+  const isProcessing = ['fast_processing', 'fast_ready', 'accurate_processing', 'complete'].includes(session?.status);
+  useEffect(() => {
+    if (isProcessing) navigate(`/app/session/${sessionId}/result`, { replace: true });
+  }, [isProcessing, navigate, sessionId]);
+
+  const goTo = (next, dir = 'forward') => {
+    setDirection(dir);
+    setStep(next);
+    setRejectionError(null);
+  };
+
+  const goBack = () => {
+    if (step <= 2) navigate('/app');
+    else if (step === 4 && !frames.A) goTo(3, 'back');
+    else goTo(step - 1, 'back');
+  };
+
+  /* ── Photo upload + validate chain ─────────────────────────────── */
+  const choosePhoto = (event, pose) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    setRejectionError(null);
+    const url = URL.createObjectURL(file);
+    const formData = new FormData();
+    formData.append('pose', pose);
+    formData.append('image', file);
+
+    upload.mutate({ sessionId, formData }, {
+      onSuccess: (response) => {
+        validate.mutate({ sessionId, frameId: response.frame_id }, {
+          onSuccess: (validation) => {
+            if (!validation.accepted) {
+              URL.revokeObjectURL(url);
+              setRejectionError({
+                message: validation.guidance_prompts?.[0] || "This photo couldn't be validated.",
+                hints: validation.guidance_prompts?.slice(1) || [],
+                frameId: response.frame_id,
+              });
+              return;
+            }
+            setFrames(curr => ({
+              ...curr,
+              [pose]: { id: response.frame_id, url, landmarks: validation.landmarks || [] },
+            }));
+            // Go to side photo or review
+            goTo(pose === 'A' ? 4 : 5);
+          },
+          onError: () => {
+            URL.revokeObjectURL(url);
+            setRejectionError({ message: 'Validation check failed. Check your connection.' });
+          },
+        });
+      },
+      onError: () => {
+        URL.revokeObjectURL(url);
+        setRejectionError({ message: 'Upload failed. Check your connection and try again.' });
+      },
+    });
+  };
+
+  /* ── Landmark movement ──────────────────────────────────────────── */
+  const movePoint = useCallback((pose, index, dx, dy) => {
+    setFrames(curr => {
+      const landmarks = [...curr[pose].landmarks];
+      const pt = landmarks[index];
+      landmarks[index] = {
+        ...pt,
+        x: Math.max(0, Math.min(1, pt.x + dx)),
+        y: Math.max(0, Math.min(1, pt.y + dy)),
+        confidence: 1,
+        tier: 'HIGH',
+      };
+      return { ...curr, [pose]: { ...curr[pose], landmarks } };
+    });
+  }, []);
+
+  const selectPoint = (pose, index) => {
+    const point = frames[pose].landmarks[index];
+    setUndo(curr => [...curr, { pose, index, point: { ...point } }]);
+    setSelectedPoint({ pose, index });
+    navigator.vibrate?.(20);
+  };
+
+  const deselectPoint = () => setSelectedPoint(null);
+
+  const undoPoint = () => {
+    const previous = undo.at(-1);
+    if (!previous) return;
+    setFrames(curr => {
+      const landmarks = [...curr[previous.pose].landmarks];
+      landmarks[previous.index] = previous.point;
+      return { ...curr, [previous.pose]: { ...curr[previous.pose], landmarks } };
+    });
+    setUndo(curr => curr.slice(0, -1));
+    setSelectedPoint(null);
+  };
+
+  /* ── Submit ─────────────────────────────────────────────────────── */
+  const [submitError, setSubmitError] = useState('');
+  const calculating = confirm.isPending || fast.isPending || accurate.isPending;
+
+  const submit = () => {
+    if (!frames.A || !frames.B) return;
+    setSubmitError('');
+    confirm.mutate({ sessionId, frameId: frames.A.id, landmarks: frames.A.landmarks }, {
+      onSuccess: () =>
+        confirm.mutate({ sessionId, frameId: frames.B.id, landmarks: frames.B.landmarks }, {
+          onSuccess: () =>
+            fast.mutate(sessionId, {
+              onSuccess: () =>
+                accurate.mutate(sessionId, {
+                  onSuccess: () => navigate(`/app/session/${sessionId}/result`),
+                  onError: () => navigate(`/app/session/${sessionId}/result`),
+                }),
+              onError: () => setSubmitError('Measurement processing failed. Please try again.'),
+            }),
+          onError: () => setSubmitError('Side photo confirmation failed. Please try again.'),
+        }),
+      onError: () => setSubmitError('Front photo confirmation failed. Please try again.'),
+    });
+  };
+
+  const busy = upload.isPending || validate.isPending;
+  const animCls = direction === 'forward' ? 'step-animate-forward' : 'step-animate-back';
+
+  return (
+    <div className="flow-page">
+      <header className="flow-header">
+        <div className="flow-header__row">
+          <button
+            className="icon-button"
+            onClick={goBack}
+            aria-label="Go back"
+          >
+            <ArrowLeft size={20} aria-hidden="true" />
+          </button>
+          <h1 className="flow-header__title">{STEP_LABELS[step]}</h1>
+          <span />
+        </div>
+      </header>
+
+      <main className="flow-content">
+        {/* Photo pair breadcrumb (steps 3-5) */}
+        {step >= 3 && (
+          <div className="photo-pair" style={{ marginBottom: 'var(--space-4)' }} aria-label="Photo progress">
+            <span className={`photo-pair__step photo-pair__step--${step > 3 || frames.A ? 'done' : 'current'}`}>
+              {frames.A && <CheckCircle2 size={12} aria-hidden="true" />}
+              Front
+            </span>
+            <div className="photo-pair__divider" aria-hidden="true" />
+            <span className={`photo-pair__step photo-pair__step--${
+              step > 4 || frames.B ? 'done' : step === 4 ? 'current' : 'future'
+            }`}>
+              {frames.B && <CheckCircle2 size={12} aria-hidden="true" />}
+              Side
+            </span>
+          </div>
+        )}
+
+        {step === 2 && <Guide onContinue={() => goTo(3)} animCls={animCls} />}
+        {step === 3 && (
+          <Capture
+            key="front"
+            pose="A"
+            busy={busy}
+            rejectionError={step === 3 ? rejectionError : null}
+            onChoose={choosePhoto}
+            animCls={animCls}
+          />
+        )}
+        {step === 4 && (
+          <Capture
+            key="side"
+            pose="B"
+            busy={busy}
+            rejectionError={step === 4 ? rejectionError : null}
+            onChoose={choosePhoto}
+            animCls={animCls}
+          />
+        )}
+        {step === 5 && (
+          <Review
+            frames={frames}
+            selectedPoint={selectedPoint}
+            onSelectPoint={selectPoint}
+            onDeselectPoint={deselectPoint}
+            onMovePoint={movePoint}
+            onUndo={undoPoint}
+            canUndo={undo.length > 0}
+            onRetake={(pose) => {
+              if (frames[pose]?.url) URL.revokeObjectURL(frames[pose].url);
+              setFrames(curr => ({ ...curr, [pose]: null }));
+              setSelectedPoint(null);
+              goTo(pose === 'A' ? 3 : 4, 'back');
+            }}
+            onSubmit={submit}
+            calculating={calculating}
+            submitError={submitError}
+            animCls={animCls}
+          />
+        )}
+      </main>
+    </div>
+  );
+}
+
+/* ════════════════════════════════════════════════════════════════════
+   Step 1: Guide / Pre-capture tips
+   ════════════════════════════════════════════════════════════════════ */
+function Guide({ onContinue, animCls }) {
+  const tips = [
+    {
+      title: 'Give yourself space',
+      copy: 'Your full body — head to feet — must be visible in each photo.',
+    },
+    {
+      title: 'Wear fitted clothing',
+      copy: 'Fitted fabric lets the AI detect your shape accurately. Avoid loose jumpers or coats.',
+    },
+    {
+      title: 'Use even lighting',
+      copy: 'Face a window or light source. Avoid strong back-lighting or heavy shadows.',
+    },
+  ];
+
+  return (
+    <div className={animCls} style={{ display: 'flex', flexDirection: 'column', flex: 1, gap: 'var(--space-5)' }}>
+      <div>
+        <p className="page-eyebrow">Before you start</p>
+        <h2 className="page-title" style={{ fontSize: 'var(--text-3xl)' }}>
+          Set up for a<br />clean scan
+        </h2>
+        <p className="page-copy">You'll take one front photo and one side profile photo.</p>
+      </div>
+
+      <div className="card" style={{ padding: 'var(--space-5)' }}>
+        <div className="guide-tips">
+          {tips.map((tip, i) => (
+            <div className="guide-tip" key={tip.title}>
+              <span className="guide-tip__number">{i + 1}</span>
+              <div>
+                <p className="guide-tip__title">{tip.title}</p>
+                <p className="guide-tip__copy">{tip.copy}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div
+        className="banner banner--info"
+        style={{ alignItems: 'center' }}
+      >
+        <ShieldCheck size={18} aria-hidden="true" style={{ flexShrink: 0 }} />
+        <p className="banner__message">
+          Choose a private space. Your photos are only used for measurement and aren't stored on our servers.
+        </p>
+      </div>
+
+      <div className="sticky-action">
+        <Button fullWidth onClick={onContinue}>
+          I'm ready <Check size={18} aria-hidden="true" />
+        </Button>
+      </div>
+    </div>
+  );
+}
+
+/* ════════════════════════════════════════════════════════════════════
+   Step 2 & 3: Capture / Upload screen
+   ════════════════════════════════════════════════════════════════════ */
+function Capture({ pose, busy, rejectionError, onChoose, animCls }) {
+  const isFront = pose === 'A';
+
+  // ⚠ ASSUMPTION: WebSocket guidance signals have shape:
+  //   { status: 'ok'|'adjust'|'error', message: string }
+  // Live guidance is wired to the same session but no WS needed for upload flow.
+  // This state is a placeholder for a future WS integration.
+  const [guidance] = useState(null); // { status, message }
+
+  return (
+    <div className={animCls} style={{ display: 'flex', flexDirection: 'column', flex: 1, gap: 'var(--space-4)' }}>
+      <div>
+        <p className="page-eyebrow">{isFront ? 'Photo 1 of 2' : 'Photo 2 of 2'}</p>
+        <h2 className="page-title" style={{ fontSize: 'var(--text-3xl)' }}>
+          {isFront ? 'Face the camera' : 'Turn to your side'}
+        </h2>
+        <p className="page-copy">
+          {isFront
+            ? 'Stand in front of the camera, arms slightly away from your body.'
+            : "Turn 90° to your right. Keep your arm slightly forward so it doesn't hide your hip."}
+        </p>
+      </div>
+
+      {/* Capture stage */}
+      <div className="capture-stage" role="img" aria-label={`${isFront ? 'Front' : 'Side'} pose guide`}>
+        {/* Corner ruler-tick alignment marks */}
+        <div className="capture-stage__corners" aria-hidden="true">
+          <div className="capture-stage__corner-br" />
+        </div>
+
+        {/* Silhouette guide */}
+        <img
+          className="capture-stage__guide"
+          src={`/assets/poses/pose_${pose}.png`}
+          alt=""
+          aria-hidden="true"
+        />
+
+        {/* Live guidance chip — WebSocket signal */}
+        {guidance && (
+          <div
+            className={`guidance-chip guidance-chip--${guidance.status}`}
+            role="status"
+            aria-live="polite"
+          >
+            {guidance.status === 'ok' && <CheckCircle2 size={12} aria-hidden="true" />}
+            {guidance.status === 'adjust' && <AlertCircle size={12} aria-hidden="true" />}
+            {guidance.status === 'error' && <AlertCircle size={12} aria-hidden="true" />}
+            {guidance.message}
+          </div>
+        )}
+
+        {/* Loading overlay */}
+        {busy && (
+          <div className="capture-stage__loading" role="status" aria-label="Checking photo">
+            <RefreshCw size={28} className="spin" aria-hidden="true" />
+            <p className="capture-stage__loading-label">Checking your photo…</p>
+          </div>
+        )}
+      </div>
+
+      {/* Validation rejection feedback */}
+      {rejectionError && (
+        <div className="validation-reject" role="alert">
+          <p className="validation-reject__heading">
+            <AlertCircle size={15} aria-hidden="true" />
+            {rejectionError.message}
+          </p>
+          {rejectionError.hints?.length > 0 && (
+            <ul style={{ margin: 0, padding: '0 0 0 var(--space-4)', listStyle: 'disc' }}>
+              {rejectionError.hints.map((hint, i) => (
+                <li key={i} style={{ fontSize: 'var(--text-sm)', color: 'var(--color-ink-muted)', lineHeight: 'var(--leading-loose)' }}>
+                  {hint}
+                </li>
+              ))}
+            </ul>
+          )}
+          <p className="validation-reject__message">Try again with the photo above, or choose a new one.</p>
+        </div>
+      )}
+
+      {/* Capture / upload actions */}
+      <div className="capture-actions">
+        <label className="file-label">
+          <span className="button button--primary button--full">
+            <Camera size={19} aria-hidden="true" />
+            {rejectionError ? 'Take photo again' : 'Open camera'}
+          </span>
+          <input
+            className="sr-only"
+            type="file"
+            accept="image/*"
+            capture="environment"
+            disabled={busy}
+            onChange={(e) => onChoose(e, pose)}
+          />
+        </label>
+        <label className="file-label">
+          <span className="button button--outline button--full">
+            <ImageIcon size={18} aria-hidden="true" />
+            Choose from gallery
+          </span>
+          <input
+            className="sr-only"
+            type="file"
+            accept="image/jpeg,image/png"
+            disabled={busy}
+            onChange={(e) => onChoose(e, pose)}
+          />
+        </label>
+      </div>
+    </div>
+  );
+}
+
+/* ════════════════════════════════════════════════════════════════════
+   Step 4: Landmark Correction / Review
+   ════════════════════════════════════════════════════════════════════ */
+function Review({
+  frames,
+  selectedPoint,
+  onSelectPoint,
+  onDeselectPoint,
+  onMovePoint,
+  onUndo,
+  canUndo,
+  onRetake,
+  onSubmit,
+  calculating,
+  submitError,
+  animCls,
+}) {
+  const hasLowPoints = Object.values(frames).some(frame =>
+    frame?.landmarks?.some(pt => (pt.tier === 'LOW') || (pt.confidence ?? 1) < 0.45)
+  );
+
+  return (
+    <>
+      <div className={animCls} style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-5)' }}>
+        <div>
+          <p className="page-eyebrow">Final check</p>
+          <h2 className="page-title" style={{ fontSize: 'var(--text-3xl)' }}>
+            Review detected<br />points
+          </h2>
+          <p className="page-copy">
+            Tap any <span style={{ color: 'var(--color-brass)', fontWeight: 700 }}>amber</span> or <span style={{ color: 'var(--color-danger)', fontWeight: 700 }}>red</span> point to adjust it.
+            Precise points produce more accurate measurements.
+          </p>
+        </div>
+
+        {hasLowPoints && (
+          <div
+            className="banner banner--warning"
+            style={{ alignItems: 'flex-start' }}
+          >
+            <ZoomIn size={16} style={{ flexShrink: 0, marginTop: 2 }} aria-hidden="true" />
+            <p className="banner__message">
+              Some points need attention. Tap a coloured dot to open the precision editor, then drag the joystick to move it onto the exact joint.
+            </p>
+          </div>
+        )}
+
+        <div className="review-stack">
+          {['A', 'B'].map(pose => {
+            const frame = frames[pose];
+            if (!frame) return null;
+            return (
+              <FrameReview
+                key={pose}
+                pose={pose}
+                frame={frame}
+                selectedPoint={selectedPoint}
+                onSelectPoint={onSelectPoint}
+                onRetake={onRetake}
+              />
+            );
+          })}
+        </div>
+
+        {canUndo && (
+          <button
+            onClick={onUndo}
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 'var(--space-2)',
+              alignSelf: 'center',
+              padding: '0 var(--space-3)',
+              minHeight: 40,
+              background: 'transparent',
+              border: 'none',
+              cursor: 'pointer',
+              color: 'var(--color-ink-muted)',
+              fontSize: 'var(--text-sm)',
+              fontWeight: 700,
+            }}
+          >
+            <RotateCcw size={15} aria-hidden="true" />
+            Undo last move
+          </button>
+        )}
+
+        {submitError && (
+          <Banner type="error" title="Couldn't start calculations" message={submitError} />
+        )}
+
+        <div className="sticky-action">
+          <Button fullWidth onClick={onSubmit} isLoading={calculating} variant="brass">
+            Calculate my measurements <Check size={18} aria-hidden="true" />
+          </Button>
+        </div>
+      </div>
+
+      {/* Drag Pad — appears when a point is selected */}
+      {selectedPoint && (
+        <DragPad
+          pose={selectedPoint.pose}
+          index={selectedPoint.index}
+          point={frames[selectedPoint.pose]?.landmarks[selectedPoint.index]}
+          onMove={(dx, dy) => onMovePoint(selectedPoint.pose, selectedPoint.index, dx, dy)}
+          onDone={onDeselectPoint}
+          onCancel={onDeselectPoint}
+        />
+      )}
+    </>
+  );
+}
+
+/* ════════════════════════════════════════════════════════════════════
+   FrameReview — single photo with SVG landmark overlay
+   ════════════════════════════════════════════════════════════════════ */
+function FrameReview({ pose, frame, selectedPoint, onSelectPoint, onRetake }) {
+  const imgRef = useRef(null);
+
+  const isSelected = (index) =>
+    selectedPoint?.pose === pose && selectedPoint?.index === index;
+
+  // Loupe: show magnified area around selected point using canvas approach
+  // Uses background-image trick on a div for the zoom
+  const selectedIdx = selectedPoint?.pose === pose ? selectedPoint.index : null;
+  const selectedPt = selectedIdx != null ? frame.landmarks[selectedIdx] : null;
+
+  return (
+    <div className="card" style={{ padding: 'var(--space-3)' }}>
+      {/* Header row */}
+      <div className="review-card-header">
+        <span className="review-card-header__label">
+          {pose === 'A' ? 'Front photo' : 'Side photo'}
+        </span>
+        <Button variant="text" onClick={() => onRetake(pose)} style={{ minHeight: 36, fontSize: 'var(--text-sm)' }}>
+          Retake
+        </Button>
+      </div>
+
+      {/* Photo + SVG overlay */}
+      <div className="review-photo-wrap" ref={imgRef}>
+        <img
+          src={frame.url}
+          alt={`${pose === 'A' ? 'Front' : 'Side'} measurement photo`}
+          draggable="false"
+        />
+
+        <svg aria-label="Detected body landmarks" role="img">
+          {frame.landmarks.map((point, index) => {
+            const color = tierColor(point);
+            const selected = isSelected(index);
+            const isLow = (point.tier === 'LOW') || (point.confidence ?? 1) < 0.45;
+            const name = POINT_FRIENDLY_NAMES[point.name] || point.name;
+
+            return (
+              <g
+                key={`${point.name ?? index}-${index}`}
+                style={{
+                  animationDelay: `${index * 25}ms`,
+                }}
+                className="landmark-enter"
+              >
+                {/* Pulse ring for LOW confidence */}
+                {isLow && !selected && (
+                  <circle
+                    cx={`${point.x * 100}%`}
+                    cy={`${point.y * 100}%`}
+                    r="14"
+                    fill="none"
+                    stroke={color}
+                    strokeWidth="1.5"
+                    opacity="0"
+                    style={{
+                      animation: 'lm-ring-pulse 1.4s ease-out infinite',
+                    }}
+                  />
+                )}
+
+                {/* Selection outer ring */}
+                {selected && (
+                  <circle
+                    cx={`${point.x * 100}%`}
+                    cy={`${point.y * 100}%`}
+                    r="14"
+                    fill="none"
+                    stroke="var(--color-brass)"
+                    strokeWidth="2"
+                    opacity="0.9"
+                  />
+                )}
+
+                {/* Large touch target (44px diameter) */}
+                <circle
+                  cx={`${point.x * 100}%`}
+                  cy={`${point.y * 100}%`}
+                  r="22"
+                  fill="transparent"
+                  style={{ cursor: 'pointer' }}
+                  onClick={() => onSelectPoint(pose, index)}
+                />
+
+                {/* Visible dot */}
+                <circle
+                  cx={`${point.x * 100}%`}
+                  cy={`${point.y * 100}%`}
+                  r={selected ? 9 : 6}
+                  fill={selected ? 'var(--color-brass)' : color}
+                  stroke="#fff"
+                  strokeWidth={selected ? 2.5 : 1.5}
+                  style={{ transition: 'r 160ms ease, fill 200ms ease' }}
+                />
+
+                {/* Name label for selected point */}
+                {selected && (
+                  <foreignObject
+                    x={`${point.x * 100}%`}
+                    y={`${point.y * 100}%`}
+                    width="1"
+                    height="1"
+                    overflow="visible"
+                    style={{ pointerEvents: 'none' }}
+                  >
+                    <div className="point-label">
+                      {name}
+                    </div>
+                  </foreignObject>
+                )}
+              </g>
+            );
+          })}
+        </svg>
+
+        {/* Loupe — shows above selected point */}
+        {selectedPt && imgRef.current && (
+          <Loupe
+            point={selectedPt}
+            imageUrl={frame.url}
+            containerRef={imgRef}
+          />
+        )}
+      </div>
+    </div>
+  );
+}
+
+/* ════════════════════════════════════════════════════════════════════
+   Loupe — 3× magnifier above the selected point
+   ════════════════════════════════════════════════════════════════════ */
+function Loupe({ point, imageUrl, containerRef }) {
+  const container = containerRef.current;
+  if (!container) return null;
+
+  const img = container.querySelector('img');
+  if (!img) return null;
+
+  const imgRect = img.getBoundingClientRect();
+  const containerRect = container.getBoundingClientRect();
+  const ZOOM = 3;
+  const SIZE = 72;
+  const HALF = SIZE / 2;
+
+  // Position in container-local pixels
+  const px = point.x * imgRect.width;
+  const py = point.y * imgRect.height;
+
+  // Background-position: offset so the point is centered in loupe
+  const bgX = -(px * ZOOM - HALF);
+  const bgY = -(py * ZOOM - HALF);
+
+  return (
+    <div
+      className="loupe"
+      aria-hidden="true"
+      style={{
+        left: px,
+        top: py,
+        backgroundImage: `url(${imageUrl})`,
+        backgroundSize: `${imgRect.width * ZOOM}px ${imgRect.height * ZOOM}px`,
+        backgroundPosition: `${bgX}px ${bgY}px`,
+        backgroundRepeat: 'no-repeat',
+      }}
+    >
+      <div className="loupe__crosshair" />
+    </div>
+  );
+}
+
+/* ════════════════════════════════════════════════════════════════════
+   DragPad — spatially-decoupled joystick for landmark correction
+   Eliminates thumb-occlusion by placing control in thumb-reachable zone.
+   Movement is proportional to how far the thumb slides from pad center.
+   ════════════════════════════════════════════════════════════════════ */
+function DragPad({ pose, index, point, onMove, onDone, onCancel }) {
+  const padRef = useRef(null);
+  const thumbRef = useRef(null);
+  const draggingPad = useRef(false);
+  const lastPos = useRef({ x: 0, y: 0 });
+  const thumbOffset = useRef({ x: 0, y: 0 });
+
+  const name = POINT_FRIENDLY_NAMES[point?.name] || point?.name || 'Point';
+  const color = tierColor(point);
+
+  /* Joystick drag logic */
+  const getPos = (e) => {
+    const touch = e.touches?.[0];
+    return { x: touch?.clientX ?? e.clientX, y: touch?.clientY ?? e.clientY };
+  };
+
+  const handlePadStart = (e) => {
+    e.preventDefault();
+    draggingPad.current = true;
+    const pos = getPos(e);
+    lastPos.current = pos;
+    thumbOffset.current = { x: 0, y: 0 };
+    navigator.vibrate?.(15);
+  };
+
+  const handlePadMove = useCallback((e) => {
+    if (!draggingPad.current || !padRef.current || !thumbRef.current) return;
+    e.preventDefault();
+
+    const pos = getPos(e);
+    const rect = padRef.current.getBoundingClientRect();
+    const center = { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 };
+
+    // Offset from pad center, clamped to PAD_RADIUS
+    const rawDx = pos.x - center.x;
+    const rawDy = pos.y - center.y;
+    const dist = Math.sqrt(rawDx ** 2 + rawDy ** 2);
+    const clamp = Math.min(dist, PAD_RADIUS);
+    const angle = Math.atan2(rawDy, rawDx);
+    const clampedX = Math.cos(angle) * clamp;
+    const clampedY = Math.sin(angle) * clamp;
+
+    // Move thumb visually
+    thumbOffset.current = { x: clampedX, y: clampedY };
+    thumbRef.current.style.transform = `translate(calc(-50% + ${clampedX}px), calc(-50% + ${clampedY}px))`;
+
+    // Normalized movement delta (scale: how much pad travel → normalized coords)
+    const deltaSinceLastMove = {
+      x: (pos.x - lastPos.current.x) * PAD_SCALE,
+      y: (pos.y - lastPos.current.y) * PAD_SCALE,
+    };
+    lastPos.current = pos;
+
+    onMove(deltaSinceLastMove.x, deltaSinceLastMove.y);
+  }, [onMove]);
+
+  const handlePadEnd = useCallback(() => {
+    if (!draggingPad.current) return;
+    draggingPad.current = false;
+    // Spring thumb back to center
+    if (thumbRef.current) {
+      thumbRef.current.style.transition = 'transform 240ms cubic-bezier(0.34,1.56,0.64,1)';
+      thumbRef.current.style.transform = 'translate(-50%, -50%)';
+      setTimeout(() => {
+        if (thumbRef.current) thumbRef.current.style.transition = '';
+      }, 260);
+    }
+  }, []);
+
+  useEffect(() => {
+    window.addEventListener('touchmove', handlePadMove, { passive: false });
+    window.addEventListener('touchend', handlePadEnd);
+    window.addEventListener('mousemove', handlePadMove);
+    window.addEventListener('mouseup', handlePadEnd);
+    return () => {
+      window.removeEventListener('touchmove', handlePadMove);
+      window.removeEventListener('touchend', handlePadEnd);
+      window.removeEventListener('mousemove', handlePadMove);
+      window.removeEventListener('mouseup', handlePadEnd);
+    };
+  }, [handlePadMove, handlePadEnd]);
+
+  return (
+    <div className="drag-pad" role="dialog" aria-label={`Adjust ${name} position`}>
+      {/* Which point is being edited */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
+        <span
+          style={{
+            display: 'inline-block',
+            width: 10,
+            height: 10,
+            borderRadius: '50%',
+            background: color,
+            flexShrink: 0,
+          }}
+          aria-hidden="true"
+        />
+        <p className="drag-pad__label">
+          Adjusting: {name} · {pose === 'A' ? 'front' : 'side'}
+        </p>
+      </div>
+
+      <p style={{ margin: 0, fontSize: 'var(--text-xs)', color: 'var(--color-ink-faint)', textAlign: 'center', lineHeight: 'var(--leading-snug)' }}>
+        Slide the dial to move the point onto the exact joint
+      </p>
+
+      {/* Joystick dial */}
+      <div
+        className="drag-pad__joystick-area"
+        ref={padRef}
+        onMouseDown={handlePadStart}
+        onTouchStart={handlePadStart}
+      >
+        <div className="drag-pad__track" aria-hidden="true" />
+        <div className="drag-pad__track-inner" aria-hidden="true" />
+        <div
+          className="drag-pad__thumb"
+          ref={thumbRef}
+          aria-label="Drag to move point"
+        />
+      </div>
+
+      {/* Action buttons */}
+      <div className="drag-pad__actions" style={{ width: '100%' }}>
+        <button
+          className="drag-pad__cancel"
+          onClick={onCancel}
+          aria-label="Cancel adjustment"
+        >
+          Cancel
+        </button>
+        <button
+          className="drag-pad__done"
+          onClick={onDone}
+          aria-label="Confirm point position"
+        >
+          <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
+            <Check size={15} aria-hidden="true" />
+            Place point here
+          </span>
+        </button>
+      </div>
+    </div>
+  );
+}

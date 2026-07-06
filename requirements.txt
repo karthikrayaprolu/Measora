@@ -1,0 +1,399 @@
+﻿################################################################################
+#  MEASORA — FULL SYSTEM REQUIREMENTS
+#  Covers all stages: Onboarding → Live Capture → Fast Tier → Accurate Tier
+#               → Footwear Path → Size Mapping → Output
+#  Standard: ISO 8559-1 (body measurement nomenclature)
+################################################################################
+
+
+================================================================================
+STAGE 0 — ONBOARDING / INPUT COLLECTION
+================================================================================
+
+[REQ-000-01]  The system shall present the user with a product-type selector
+              at application launch with the following options:
+                - Shirt
+                - T-Shirt
+                - Pant
+                - Footwear
+
+[REQ-000-02]  Based on the selected product type, the system shall automatically
+              determine which body poses are required:
+                - Shirt / T-Shirt → Pose A (front) + Pose B (side), Pose C (back) optional
+                - Pant            → Pose A (front) + Pose B (side)
+                - Footwear        → Pose D (top-down foot) only
+
+[REQ-000-03]  The system shall collect the user's height as a calibration input
+              before any capture session begins.
+
+[REQ-000-04]  Height input shall support both metric (centimetres) and imperial
+              (feet/inches) units, with automatic conversion to centimetres
+              for internal use.
+
+[REQ-000-05]  The system shall support optional advanced calibration methods as
+              upgrades to the default height-based calibration:
+                - Physical reference card placed in frame (known printed dimensions)
+                - LiDAR depth sensor data (where device hardware supports it)
+
+[REQ-000-06]  The system shall clearly communicate to the user which poses are
+              required before the capture session begins, including visual
+              reference illustrations for each pose.
+
+[REQ-000-07]  The system shall persist the user's measurement profile after a
+              successful session so that future purchases can skip re-capture,
+              subject to user consent.
+
+
+================================================================================
+STAGE 1 — LIVE CAPTURE (on-device, real-time)
+================================================================================
+
+[REQ-100-01]  The system shall activate the device camera and display a live
+              feed to the user during the capture session.
+
+[REQ-100-02]  The system shall run real-time pose estimation on the live camera
+              feed using RTMW (MMPose whole-body model) on-device or via a
+              low-latency stream.
+
+[REQ-100-03]  The system shall render a live keypoint overlay on top of the
+              camera feed to provide the user with visual pose feedback.
+
+[REQ-100-04]  The system shall perform continuous real-time pose validation by
+              comparing detected keypoints against the target pose template
+              (A, B, C, or D as required):
+                - Verify that the detected pose matches the required template
+                - Verify that the full body (head to feet) is visible within frame
+                - Verify that the scene lighting is adequate (luminance threshold check)
+                - Verify correct framing and minimum distance from camera
+                - Flag if clothing appears baggy or heavily occluding body contours
+
+[REQ-100-05]  The system shall display instant, human-readable guidance prompts
+              on screen based on real-time validation results. Examples:
+                - "Step back — full body not visible"
+                - "Raise your arms to shoulder height"
+                - "Face the camera directly"
+                - "Lighting too low — move to a brighter area"
+                - "Clothing may be too baggy — results could be less accurate"
+
+[REQ-100-06]  A pose capture shall be accepted only when all of the following
+              conditions are simultaneously met for a minimum hold duration
+              (configurable, default 2 seconds):
+                - Pose template match confidence >= threshold
+                - Full body visible in frame
+                - Lighting adequate
+                - No major occlusion detected
+
+[REQ-100-07]  Upon pose acceptance, the system shall freeze and store the
+              corresponding frame for downstream processing.
+
+[REQ-100-08]  The system shall iterate through all required poses (A/B/C or D)
+              in sequence, repeating REQ-100-02 through REQ-100-07 for each,
+              before proceeding to Stage 2.
+
+[REQ-100-09]  The system shall display clear progress indicators showing how
+              many poses have been captured and how many remain.
+
+
+================================================================================
+STAGE 2 — FAST TIER (instant estimate, ~1-2 seconds, server or edge)
+================================================================================
+
+[REQ-200-01]  Immediately after all required pose frames are captured, the
+              system shall initiate the Fast Tier pipeline asynchronously.
+
+[REQ-200-02]  The system shall re-run pose estimation (RTMW / MMPose) on each
+              captured still frame to produce high-quality, noise-reduced
+              keypoint coordinates for all required poses.
+
+[REQ-200-03]  The system shall perform body silhouette extraction on each
+              captured frame using SAM2 (Segment Anything Model 2) to isolate
+              the person from the background.
+
+[REQ-200-04]  The system shall perform fast single-pass 3D body regression
+              using HybrIK or CLIFF (SMPL-X parametric model regression) to
+              produce an initial 3D mesh estimate from the captured images.
+
+[REQ-200-05]  The system shall apply height-based scale calibration to the
+              raw 3D mesh output, converting dimensionless mesh units into
+              real-world centimetre measurements using the height provided
+              in Stage 0.
+
+[REQ-200-06]  The system shall derive rough body measurements from the scaled
+              Fast Tier mesh and map them to a recommended size label
+              (e.g., XS / S / M / L / XL / XXL or numeric equivalent).
+
+[REQ-200-07]  The system shall display the instant size estimate to the user
+              within approximately 1-2 seconds of completing Stage 1, clearly
+              labelled as "Estimated size: [SIZE]".
+
+[REQ-200-08]  The system shall simultaneously and in parallel kick off
+              Stage 3 (Accurate Tier) processing in the background immediately
+              after Stage 2 results are available.
+
+
+================================================================================
+STAGE 3 — ACCURATE TIER (background, ~15-60 seconds, server GPU)
+================================================================================
+
+[REQ-300-01]  The system shall perform multi-pose 3D mesh optimisation using
+              EasyMocap or SMPLify-X to jointly fit a SMPL-X parametric body
+              mesh using data from all captured poses simultaneously.
+
+[REQ-300-02]  The multi-pose mesh optimisation shall use the following inputs:
+                - RTMW (MMPose) keypoints from all required captured poses
+                - SAM2 silhouette masks from all required captured poses
+
+[REQ-300-03]  The joint optimisation shall minimise a combined loss over all
+              input poses to produce a single consistent SMPL-X body mesh
+              that best explains all views simultaneously.
+
+[REQ-300-04]  The system shall apply scale calibration to the optimised mesh
+              using the primary calibration method determined in Stage 0:
+                a) User-entered height (default)
+                b) Reference card pixel-to-centimetre ratio (if card was used)
+                c) LiDAR depth data (if LiDAR device is available)
+              The result shall be a metric-scale mesh with all vertices in
+              real-world centimetres.
+
+[REQ-300-05]  The system shall extract body measurements from the calibrated
+              SMPL-X mesh using ISO 8559-1 landmark definitions.
+
+[REQ-300-06]  Circumference measurements shall be computed by slicing the mesh
+              with the appropriate horizontal or oblique plane and computing
+              the convex hull perimeter of the cross-section. Required
+              circumferences include (but are not limited to):
+                - Chest circumference
+                - Waist circumference
+                - Hip circumference
+                - Neck circumference
+
+[REQ-300-07]  Length and width measurements shall be computed as the Euclidean
+              distance between the relevant anatomical landmark vertices on the
+              mesh. Required lengths include (but are not limited to):
+                - Shoulder width
+                - Sleeve length
+                - Inseam length
+                - Torso length (nape to waist)
+
+[REQ-300-08]  All extracted measurements shall be stored with their
+              ISO 8559-1 standard name, numerical value in centimetres, and
+              the mesh residual error associated with each measurement.
+
+[REQ-300-09]  Upon completion of Stage 3, the system shall update the UI to
+              replace the "Estimated size" label with the refined
+              "Confirmed size" result (see Stage 4 and Output).
+
+
+================================================================================
+STAGE 3B — FOOTWEAR PATH (parallel, independent of body mesh)
+================================================================================
+
+[REQ-3B0-01]  When the selected product type is Footwear, the system shall
+              guide the user through capturing Pose D:
+                - Top-down photo of both feet flat on the floor
+                - Side-profile photo of the foot
+              An A4 paper sheet (210 mm x 297 mm) must be placed adjacent to
+              the foot in frame as a physical scale reference.
+
+[REQ-3B0-02]  The system shall apply SAM2 (Segment Anything Model 2) to
+              segment the foot region from the background in each foot photo.
+
+[REQ-3B0-03]  The system shall automatically detect the A4 paper in each
+              photo and compute a pixel-to-millimetre calibration ratio using
+              the paper's known physical dimensions (ISO 216 A4: 210 x 297 mm).
+
+[REQ-3B0-04]  Using the calibrated scale, the system shall extract the
+              following foot measurements:
+                - Foot length (heel to longest toe, in mm)
+                - Foot width (widest point across the ball of the foot, in mm)
+                - Arch length / foot circumference (if derivable from the images)
+
+[REQ-3B0-05]  Footwear measurement extraction (Stage 3B) shall run in parallel
+              with and independently of body mesh processing (Stages 2 and 3),
+              as it does not depend on the SMPL-X mesh pipeline.
+
+[REQ-3B0-06]  Foot measurements shall be passed directly to Stage 4 (Size
+              Mapping) for footwear-specific size chart lookup.
+
+
+================================================================================
+STAGE 4 — SIZE MAPPING
+================================================================================
+
+[REQ-400-01]  The system shall maintain a database of brand- and
+              product-specific size charts covering all supported product
+              types (Shirt, T-Shirt, Pant, Footwear).
+
+[REQ-400-02]  Size recommendations shall be derived from per-brand, per-product
+              numeric size charts and NOT from generic S/M/L mappings alone.
+              Where a brand uses numeric sizing (e.g., EU 42, US 32W/30L,
+              shoe size EU 43), the system shall output the brand's native
+              size label.
+
+[REQ-400-03]  The system shall compare the final Stage 3 body measurements
+              (and Stage 3B foot measurements for Footwear) against the
+              applicable brand/product size chart to determine the best-fit size.
+
+[REQ-400-04]  Where a user's measurements fall between two size brackets, the
+              system shall apply a configurable fit preference (slim / regular /
+              relaxed) to determine whether to recommend the smaller or larger
+              size, defaulting to regular fit.
+
+[REQ-400-05]  The system shall compute a confidence score for each size
+              recommendation based on:
+                - Residual error of the SMPL-X mesh fit (lower residual = higher confidence)
+                - Consistency of measurements across multi-pose inputs
+                - Whether measurements fall cleanly within one size bracket or
+                  are borderline between two brackets
+
+[REQ-400-06]  If the confidence score falls below a configurable threshold,
+              the system shall:
+                - Flag the result as low confidence
+                - Suggest the user repeat the capture session
+                - Optionally highlight which measurement(s) are uncertain
+
+[REQ-400-07]  The size chart database shall be updateable (e.g., via CMS or
+              API) without requiring a client-side application update.
+
+[REQ-400-08]  The system shall support multiple size systems simultaneously
+              per product (e.g., EU, US, UK, Asian sizing) and present all
+              applicable size equivalents alongside the primary recommendation.
+
+
+================================================================================
+OUTPUT
+================================================================================
+
+[REQ-500-01]  Upon completion of Stage 4, the system shall update the UI to
+              display the final result, transitioning the label from
+              "Estimated size" to "Confirmed size".
+
+[REQ-500-02]  The output screen shall display:
+                - Recommended size (brand-specific label + size system)
+                - All extracted body measurements (labelled with ISO 8559-1 names)
+                - Confidence score or confidence level indicator (e.g., High / Medium / Low)
+                - Any low-confidence warnings or re-capture suggestions
+
+[REQ-500-03]  The system shall store the user's full measurement profile
+              (all extracted measurements + confidence scores + capture metadata)
+              securely and associate it with the user's account, subject to
+              explicit user consent under applicable data-privacy regulations
+              (e.g., GDPR, PDPA).
+
+[REQ-500-04]  On subsequent purchases, the system shall offer the user the
+              option to use their stored measurement profile to receive a size
+              recommendation without requiring a new capture session.
+
+[REQ-500-05]  The stored profile shall include a timestamp and an expiry
+              recommendation prompt (e.g., "Your measurements are over 6 months
+              old — consider re-capturing for best accuracy").
+
+[REQ-500-06]  The system shall allow the user to manually review, edit, or
+              delete their stored measurement profile at any time.
+
+[REQ-500-07]  Size recommendation results shall be exportable or shareable
+              (e.g., copy to clipboard, share link) for use across multiple
+              retail platforms or brand integrations.
+
+
+================================================================================
+CROSS-CUTTING / NON-FUNCTIONAL REQUIREMENTS
+================================================================================
+
+[REQ-NFR-01]  PERFORMANCE
+              - Stage 2 Fast Tier result shall be delivered within 1-2 seconds
+                of Stage 1 completion.
+              - Stage 3 Accurate Tier result shall be delivered within 15-60
+                seconds of Stage 1 completion, running as a background task.
+              - Live camera pose guidance (Stage 1) shall maintain a minimum
+                of 15 frames per second for real-time responsiveness.
+
+[REQ-NFR-02]  ACCURACY
+              - Target measurement accuracy: +/-1-2 cm for torso measurements
+                and +/-2-3 mm for foot measurements under standard capture
+                conditions (adequate lighting, non-baggy clothing, full body
+                in frame).
+              - The system shall document expected error margins per
+                measurement type and calibration method.
+
+[REQ-NFR-03]  PRIVACY AND DATA SECURITY
+              - Body measurement data and captured images shall be transmitted
+                only over encrypted channels (TLS 1.2 or higher).
+              - Captured images shall not be stored on server infrastructure
+                beyond the processing session unless the user explicitly opts in.
+              - The user's measurement profile stored for future use shall be
+                encrypted at rest.
+
+[REQ-NFR-04]  DEVICE COMPATIBILITY
+              - The live capture and Fast Tier pipeline shall be designed to
+                run on modern mid-range mobile devices (iOS and Android).
+              - LiDAR-based calibration shall be supported on devices equipped
+                with a LiDAR sensor and gracefully unavailable on others.
+
+[REQ-NFR-05]  OFFLINE / DEGRADED MODE
+              - The system shall provide a meaningful fallback if server-side
+                GPU processing (Stage 3) is unavailable, relying solely on
+                the Stage 2 Fast Tier result with a clear disclaimer.
+
+[REQ-NFR-06]  ACCESSIBILITY
+              - All on-screen pose guidance prompts shall be available as
+                audio instructions (text-to-speech) for users with visual
+                impairments.
+              - The UI shall meet WCAG 2.1 AA contrast and readability
+                standards.
+
+[REQ-NFR-07]  INTERNATIONALISATION
+              - The system shall support display of measurements in both
+                metric (cm / mm) and imperial (inches) units, selectable
+                by the user.
+              - Size chart entries shall cover regional sizing standards
+                (EU, US, UK, Asian) where available for each brand.
+
+[REQ-NFR-08]  EXTENSIBILITY
+              - The pipeline architecture shall be modular to allow
+                substitution of individual components (e.g., replacing HybrIK
+                with a future model) without requiring full system redesign.
+              - The brand size-chart database shall support addition of new
+                brands and product categories via a defined data schema.
+
+
+================================================================================
+TOOLS AND MODEL DEPENDENCIES SUMMARY
+================================================================================
+
+  COMPONENT                  TOOL / MODEL                       STAGE(S)
+  -------------------------------------------------------------------------
+  Real-time pose estimation  RTMW (MMPose whole-body)           1, 2, 3
+  Body segmentation          SAM2 (Segment Anything Model 2)    2, 3, 3B
+  Fast 3D regression         HybrIK  OR  CLIFF (SMPL-X)         2
+  Accurate 3D optimisation   EasyMocap  OR  SMPLify-X (SMPL-X)  3
+  Foot segmentation          SAM2                               3B
+  Scale calibration          Height input / Reference card /
+                             LiDAR depth                        0, 2, 3, 3B
+  Measurement standard       ISO 8559-1                         3, 3B
+  Size mapping               Brand-specific size chart DB       4
+
+
+================================================================================
+POSE REFERENCE DEFINITIONS
+================================================================================
+
+  Pose A — Frontal standing pose
+             User faces camera directly, arms slightly away from body
+             (approx. 30 degrees abduction), feet shoulder-width apart.
+
+  Pose B — Lateral (side) standing pose
+             User stands perpendicular to camera (either side), arms
+             relaxed at sides, feet together.
+
+  Pose C — Rear standing pose (optional, Shirt/T-Shirt only)
+             User faces away from camera, arms slightly away from body,
+             feet shoulder-width apart.
+
+  Pose D — Foot capture pose (Footwear only)
+             User places foot flat on floor next to an A4 paper sheet.
+             Two sub-captures required: top-down view and side-profile view.
+
+################################################################################
+#  END OF REQUIREMENTS
+################################################################################
