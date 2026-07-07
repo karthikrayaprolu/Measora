@@ -17,6 +17,8 @@
  *   { status: 'ok' | 'adjust' | 'error', message: string }
  */
 
+import { Capacitor } from '@capacitor/core';
+import { Camera as CapCamera, CameraResultType, CameraSource } from '@capacitor/camera';
 import { useCallback, useEffect, useRef, useState, useMemo } from 'react';
 import {
   AlertCircle,
@@ -132,9 +134,7 @@ export default function CaptureFlow() {
   };
 
   /* ── Photo upload + validate chain ─────────────────────────────── */
-  const choosePhoto = (event, pose) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
+  const uploadPhotoFlow = (file, pose) => {
     setRejectionError(null);
     const url = URL.createObjectURL(file);
     const formData = new FormData();
@@ -172,6 +172,32 @@ export default function CaptureFlow() {
         setRejectionError({ message: 'Upload failed. Check your connection and try again.' });
       },
     });
+  };
+
+  const choosePhoto = (event, pose) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    uploadPhotoFlow(file, pose);
+  };
+
+  const captureNativePhoto = async (pose, source) => {
+    try {
+      setRejectionError(null);
+      const image = await CapCamera.getPhoto({
+        quality: 90,
+        allowEditing: false,
+        resultType: CameraResultType.Uri,
+        source: source
+      });
+      
+      const response = await fetch(image.webPath);
+      const blob = await response.blob();
+      const file = new File([blob], `photo_${pose}.jpg`, { type: blob.type });
+      
+      uploadPhotoFlow(file, pose);
+    } catch (e) {
+      console.error('Camera cancelled or failed:', e);
+    }
   };
 
   /* ── Landmark movement ──────────────────────────────────────────── */
@@ -489,33 +515,56 @@ function Capture({ pose, busy, rejectionError, onChoose, animCls }) {
 
       {/* Capture / upload actions */}
       <div className="capture-actions">
-        <label className="file-label">
-          <span className="button button--primary button--full">
-            <Camera size={19} aria-hidden="true" />
-            {rejectionError ? 'Take photo again' : 'Open camera'}
-          </span>
-          <input
-            className="sr-only"
-            type="file"
-            accept="image/*"
-            capture="environment"
-            disabled={busy}
-            onChange={(e) => onChoose(e, pose)}
-          />
-        </label>
-        <label className="file-label">
-          <span className="button button--outline button--full">
-            <ImageIcon size={18} aria-hidden="true" />
-            Choose from gallery
-          </span>
-          <input
-            className="sr-only"
-            type="file"
-            accept="image/jpeg,image/png"
-            disabled={busy}
-            onChange={(e) => onChoose(e, pose)}
-          />
-        </label>
+        {Capacitor.isNativePlatform() ? (
+          <>
+            <button 
+              className="button button--primary button--full" 
+              onClick={() => captureNativePhoto(pose, CameraSource.Camera)}
+              disabled={busy}
+            >
+              <Camera size={19} aria-hidden="true" />
+              {rejectionError ? 'Take photo again' : 'Open camera'}
+            </button>
+            <button 
+              className="button button--outline button--full" 
+              onClick={() => captureNativePhoto(pose, CameraSource.Photos)}
+              disabled={busy}
+            >
+              <ImageIcon size={18} aria-hidden="true" />
+              Choose from gallery
+            </button>
+          </>
+        ) : (
+          <>
+            <label className="file-label">
+              <span className="button button--primary button--full">
+                <Camera size={19} aria-hidden="true" />
+                {rejectionError ? 'Take photo again' : 'Open camera'}
+              </span>
+              <input
+                className="sr-only"
+                type="file"
+                accept="image/*"
+                capture="environment"
+                disabled={busy}
+                onChange={(e) => choosePhoto(e, pose)}
+              />
+            </label>
+            <label className="file-label">
+              <span className="button button--outline button--full">
+                <ImageIcon size={18} aria-hidden="true" />
+                Choose from gallery
+              </span>
+              <input
+                className="sr-only"
+                type="file"
+                accept="image/jpeg,image/png"
+                disabled={busy}
+                onChange={(e) => choosePhoto(e, pose)}
+              />
+            </label>
+          </>
+        )}
       </div>
     </div>
   );
