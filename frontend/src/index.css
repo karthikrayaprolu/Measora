@@ -604,11 +604,6 @@ img {
   flex-shrink: 0;
 }
 
-[data-theme="dark"] .brand-mark {
-  background: var(--color-ink-inverse);
-  color: var(--color-surface-inverse);
-}
-
 .icon-button {
   display: grid;
   place-items: center;

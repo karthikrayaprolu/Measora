@@ -156,7 +156,7 @@ export default function LandingPage() {
               Size recommendations for every brand you buy from.
             </p>
 
-            <div className="lp-hero__actions" style={{ justifyContent: 'center', marginTop: 'var(--space-2)' }}>
+            <div className="lp-hero__actions" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginTop: 'var(--space-2)' }}>
               <Link to="/app" className="button lp-cta-primary">
                 Take your measurements
                 <ArrowRight size={18} aria-hidden="true" />

@@ -88,18 +88,14 @@ export default function Dashboard() {
       {isLoading && <CategorySkeleton />}
 
       {isError && (
-        <div className="empty-state card" role="alert">
+        <div className="empty-state card" role="alert" style={{ marginBottom: 'var(--space-4)' }}>
           <span className="empty-state__icon"><AlertCircle aria-hidden="true" /></span>
-          <h2 className="section-title">Couldn't load categories</h2>
-          <p className="muted" style={{ marginBottom: 'var(--space-4)' }}>Check your connection and try again.</p>
-          <Button onClick={() => refetch()} isLoading={isFetching} variant="outline">
-            <RefreshCw size={16} aria-hidden="true" /> Try again
-          </Button>
+          <h2 className="section-title">Backend connection issue</h2>
+          <p className="muted">Categories are still available below.</p>
         </div>
       )}
 
-      {!isLoading && !isError && (
-        <div className="category-grid" role="list">
+      <div className="category-grid" role="list">
           {CATEGORIES.map((cat) => (
             <button
               key={cat.id}
@@ -131,7 +127,6 @@ export default function Dashboard() {
             </button>
           ))}
         </div>
-      )}
     </main>
   );
 }
