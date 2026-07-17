@@ -565,8 +565,8 @@ img {
   color: var(--color-ink-muted);
 }
 
-/* ── TOPBAR ─────────────────────────────────────────────────────────── */
-.topbar {
+/* ── NAVBAR ─────────────────────────────────────────────────────────── */
+.navbar {
   position: sticky;
   top: 0;
   z-index: 30;
@@ -575,10 +575,32 @@ img {
   justify-content: space-between;
   min-height: calc(60px + env(safe-area-inset-top));
   padding: env(safe-area-inset-top) var(--space-5) 0;
+  width: 100%;
+}
+
+.navbar--solid {
   background: color-mix(in srgb, var(--color-canvas) 90%, transparent);
   border-bottom: 1px solid var(--color-border);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
+}
+
+.navbar--transparent {
+  background: transparent;
+  border-bottom: none;
+  position: relative;
+}
+
+.navbar-actions {
+  display: flex;
+  gap: var(--space-2);
+  align-items: center;
+}
+
+.navbar-auth {
+  display: flex;
+  gap: var(--space-2);
+  align-items: center;
 }
 
 .brand {
@@ -3481,21 +3503,23 @@ img {
 }
 
 .lp-cta-primary {
-  background: var(--lp-panel);
-  color: var(--lp-white);
+  background: var(--color-ink);
+  color: var(--color-canvas);
 }
 
 .lp-cta-primary:hover {
-  background: #262119;
+  background: var(--color-brass);
+  color: #1C1917 !important;
 }
 
 .lp-cta-primary--inverse {
-  background: var(--lp-white);
-  color: var(--lp-panel);
+  background: var(--color-canvas);
+  color: var(--color-ink);
 }
 
 .lp-cta-primary--inverse:hover {
-  background: #EDE8DC;
+  background: var(--color-brass);
+  color: #1C1917 !important;
 }
 
 .lp-cta-sub {

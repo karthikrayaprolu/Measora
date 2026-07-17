@@ -234,7 +234,8 @@ class UserProfile(Base):
     __tablename__ = "user_profiles"
 
     id = Column(String(16), primary_key=True, default=_new_id)
-    user_id = Column(String(64), unique=True, nullable=False, index=True)
+    user_id = Column(String(64), nullable=False, index=True)
+    profile_name = Column(String(128), default="My Measurements")
     measurements = Column(Text, default="[]")
     confidence_scores = Column(Text, default="{}")
     capture_metadata = Column(Text, default="{}")
@@ -259,6 +260,28 @@ class UserProfile(Base):
 
     def set_confidence_scores(self, data: dict):
         self.confidence_scores = json.dumps(data)
+
+
+# ---------------------------------------------------------------------------
+# SavedMeasurement
+# ---------------------------------------------------------------------------
+class SavedMeasurement(Base):
+    __tablename__ = "saved_measurements"
+
+    id = Column(String(16), primary_key=True, default=_new_id)
+    user_id = Column(String(64), nullable=False, index=True)
+    name = Column(String(128), nullable=False)
+    measurements_json = Column(Text, default="[]")
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+    def get_measurements(self) -> list:
+        try:
+            return json.loads(self.measurements_json or "[]")
+        except Exception:
+            return []
+
+    def set_measurements(self, data: list):
+        self.measurements_json = json.dumps(data)
 
 # ---------------------------------------------------------------------------
 # TrainingDataLog

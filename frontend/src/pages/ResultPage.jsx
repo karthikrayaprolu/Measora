@@ -1,7 +1,8 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { ArrowLeft, CheckCircle2, ChevronDown, RefreshCw, Ruler } from 'lucide-react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { useBrands, useResult, useSession, useSizeRecommendation } from '../api/hooks';
+import { useBrands, useResult, useSession, useSizeRecommendation, useSaveMeasurement } from '../api/hooks';
+import { useAuth } from '../contexts/AuthContext';
 import { Banner } from '../components/ui/Banner';
 import { Button } from '../components/ui/Button';
 import { Card } from '../components/ui/Card';
@@ -14,10 +15,27 @@ export default function ResultPage() {
   const productType = session?.product_type || 'shirt';
   const { data: brandsData, isLoading: brandsLoading } = useBrands(productType);
   const recommendationMutation = useSizeRecommendation();
+  const { user } = useAuth();
+  const saveMeasurement = useSaveMeasurement();
   const [brand, setBrand] = useState('');
   const [expanded, setExpanded] = useState(false);
-
+  
   const processing = ['queued', 'processing', 'fast_processing', 'accurate_processing'].includes(session?.status);
+
+
+  useEffect(() => {
+    if (!isLoading && !processing && !isError && result?.measurements?.length > 0 && recommendationMutation.isIdle) {
+      recommendationMutation.mutate({
+        sessionId,
+        payload: {
+          product_type: productType,
+          fit_preference: session?.fit_preference || 'regular',
+          preferred_size_system: 'EU',
+          use_tier: 'accurate',
+        }
+      });
+    }
+  }, [isLoading, processing, isError, result, recommendationMutation.isIdle, sessionId, productType, session]);
 
   if (isLoading || processing) {
     return <ResultLoading sessionId={sessionId} onBack={() => navigate('/app')} />;
@@ -57,33 +75,17 @@ export default function ResultPage() {
         {recommendation ? (
           <section className="result-hero" aria-live="polite">
             <p style={{ margin: 0, fontSize: 13, fontWeight: 800, textTransform: 'uppercase' }}>
-              {brandsData?.brands?.find(item => item.id === brand)?.name || 'Recommended size'}
+              Recommended size
             </p>
             <div className="result-size">{recommendation.recommended_size || '—'}</div>
             {confidence?.score != null && (
               <span className="confidence"><CheckCircle2 size={16} />{Math.round(confidence.score * 100)}% match</span>
             )}
-            <Button variant="text" onClick={() => recommendationMutation.reset()} style={{ color: 'inherit', marginTop: 12 }}>Choose another brand</Button>
           </section>
         ) : (
-          <Card style={{ display: 'grid', gap: 16 }}>
-            <label className="field">
-              <span className="field__label">Brand</span>
-              <select className="input" value={brand} onChange={e => setBrand(e.target.value)} disabled={brandsLoading}>
-                <option value="">{brandsLoading ? 'Loading brands…' : 'Select a brand'}</option>
-                {brandsData?.brands?.map(item => <option key={item.id} value={item.id}>{item.name}</option>)}
-              </select>
-            </label>
-            <Button fullWidth disabled={!brand} isLoading={recommendationMutation.isPending} onClick={() => recommendationMutation.mutate({
-              sessionId,
-              payload: {
-                brand_id: brand,
-                product_type: productType,
-                fit_preference: session?.fit_preference || 'regular',
-                preferred_size_system: 'EU',
-                use_tier: 'accurate',
-              },
-            })}>Find my size</Button>
+          <Card style={{ display: 'grid', placeItems: 'center', padding: 32 }}>
+             <RefreshCw className="spin" size={24} style={{ color: 'var(--muted)', marginBottom: 12 }} />
+             <p className="muted" style={{ margin: 0 }}>Finding your perfect fit...</p>
           </Card>
         )}
 
@@ -105,7 +107,19 @@ export default function ResultPage() {
         </section>
 
         <div className="sticky-action">
-          <Button fullWidth onClick={() => navigate('/app')}>Measure another item</Button>
+          <div style={{ display: 'flex', gap: 12 }}>
+            <Button onClick={() => navigate('/app')}>Measure another item</Button>
+            <Button variant="primary" fullWidth disabled={!result?.measurements || !user} isLoading={saveMeasurement.isPending} onClick={async () => {
+              const name = window.prompt('Save these measurements as (e.g. "John - June 2026"):');
+              if (!name) return;
+              try {
+                await saveMeasurement.mutateAsync({ userId: user.id, payload: { name, measurements: result.measurements } });
+                alert('Measurements saved to your history.');
+              } catch (e) {
+                alert('Failed to save measurements.');
+              }
+            }}>Save</Button>
+          </div>
         </div>
       </main>
     </div>

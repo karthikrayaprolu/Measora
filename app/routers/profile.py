@@ -6,6 +6,7 @@ POST   /v1/users/{user_id}/profile/recommend — recommend from stored profile
 REQ-500-03 → REQ-500-06, REQ-500-04
 """
 from datetime import datetime
+from typing import List
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
@@ -15,12 +16,80 @@ from app.core.security import get_current_user
 from app.db.database import get_db
 from app.db import models
 from app.schemas.estimate import MeasurementEntry
-from app.schemas.profile import ProfileMeasurementUpdate, ProfileRecommendRequest, UserProfileResponse
+from app.schemas.profile import (
+    ProfileMeasurementUpdate,
+    ProfileRecommendRequest,
+    UserProfileResponse,
+    SavedMeasurementCreate,
+    SavedMeasurementResponse,
+)
 from app.schemas.common import ConfidenceLevel
 from app.schemas.size import ConfidenceInfo, SizeRecommendationResponse
 from app.services.size_mapping_service import compute_size_recommendation
 
 router = APIRouter(prefix="/users", tags=["User Profile"])
+
+@router.get("/{user_id}/profiles", response_model=List[SavedMeasurementResponse])
+def list_profiles(
+    user_id: str,
+    current_user: str = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """
+    List all saved measurement profiles for a user.
+    """
+    profiles = db.query(models.UserProfile).filter(models.UserProfile.user_id == user_id).order_by(models.UserProfile.created_at.desc()).all()
+    results = []
+    for p in profiles:
+        results.append(SavedMeasurementResponse(
+            id=p.id,
+            name=p.profile_name or "My Measurements",
+            measurements=[MeasurementEntry(**m) for m in p.get_measurements()],
+            created_at=p.created_at
+        ))
+    return results
+
+@router.post("/{user_id}/profiles", response_model=SavedMeasurementResponse, status_code=201)
+def create_profile(
+    user_id: str,
+    payload: SavedMeasurementCreate,
+    current_user: str = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """
+    Save a new measurement profile.
+    """
+    profile = models.UserProfile(
+        user_id=user_id,
+        profile_name=payload.name,
+    )
+    profile.set_measurements([m.model_dump() for m in payload.measurements])
+    db.add(profile)
+    db.commit()
+    db.refresh(profile)
+    return SavedMeasurementResponse(
+        id=profile.id,
+        name=profile.profile_name,
+        measurements=[MeasurementEntry(**m) for m in profile.get_measurements()],
+        created_at=profile.created_at
+    )
+
+@router.delete("/{user_id}/profiles/{profile_id}", status_code=204)
+def delete_specific_profile(
+    user_id: str,
+    profile_id: str,
+    current_user: str = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """
+    Delete a specific measurement profile.
+    """
+    profile = db.query(models.UserProfile).filter(models.UserProfile.id == profile_id, models.UserProfile.user_id == user_id).first()
+    if not profile:
+        raise HTTPException(status_code=404, detail="Profile not found")
+    db.delete(profile)
+    db.commit()
+    return None
 
 STALE_DAYS = 180  # Flag profiles older than 6 months
 
@@ -203,3 +272,73 @@ def recommend_from_profile(
         "source": "stored_profile",
         "profile_age_days": (datetime.utcnow() - profile.created_at).days,
     }
+
+
+@router.post("/{user_id}/measurements", response_model=SavedMeasurementResponse, status_code=201)
+def save_measurement_set(
+    user_id: str,
+    payload: SavedMeasurementCreate,
+    current_user: str = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """
+    Save a named measurement set to the user's history.
+    """
+    if current_user != user_id:
+        raise HTTPException(status_code=403, detail="Forbidden")
+
+    profile = db.query(models.UserProfile).filter(models.UserProfile.user_id == user_id).first()
+    # create profile record if missing
+    if not profile:
+        profile = models.UserProfile(user_id=user_id)
+        db.add(profile)
+
+    saved = models.SavedMeasurement(user_id=user_id, name=payload.name)
+    saved.set_measurements([m.model_dump() for m in payload.measurements])
+    db.add(saved)
+    db.commit()
+    db.refresh(saved)
+
+    return SavedMeasurementResponse(id=saved.id, name=saved.name, measurements=saved.get_measurements(), created_at=saved.created_at)
+
+
+@router.get("/{user_id}/measurements", response_model=List[SavedMeasurementResponse])
+def list_measurement_sets(
+    user_id: str,
+    current_user: str = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    if current_user != user_id:
+        raise HTTPException(status_code=403, detail="Forbidden")
+
+    items = (
+        db.query(models.SavedMeasurement)
+        .filter(models.SavedMeasurement.user_id == user_id)
+        .order_by(models.SavedMeasurement.created_at.desc())
+        .all()
+    )
+
+    return [SavedMeasurementResponse(id=i.id, name=i.name, measurements=i.get_measurements(), created_at=i.created_at) for i in items]
+
+
+@router.delete("/{user_id}/measurements/{measurement_id}", status_code=204)
+def delete_measurement_set(
+    user_id: str,
+    measurement_id: str,
+    current_user: str = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    if current_user != user_id:
+        raise HTTPException(status_code=403, detail="Forbidden")
+
+    item = (
+        db.query(models.SavedMeasurement)
+        .filter(models.SavedMeasurement.user_id == user_id, models.SavedMeasurement.id == measurement_id)
+        .first()
+    )
+    if not item:
+        raise HTTPException(status_code=404, detail="Not found")
+
+    db.delete(item)
+    db.commit()
+    return None

@@ -6,7 +6,7 @@ from app.schemas.common import ConfidenceLevel, FitPreference, JobStatus, TierLa
 
 
 class SizeRecommendationRequest(BaseModel):
-    brand_id: str
+    brand_id: str = "brand_nike"
     product_type: str
     fit_preference: FitPreference = FitPreference.regular
     preferred_size_system: str = "EU"

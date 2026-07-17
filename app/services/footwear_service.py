@@ -169,7 +169,19 @@ def run_footwear_measure(session_id: str, db: DBSession) -> None:
         job.set_result(result)
         job.status = "complete"
         job.processing_time_ms = elapsed_ms
-        
+        # Cleanup any stored frame files after processing
+        try:
+            for frame in frames:
+                try:
+                    if frame.file_path:
+                        import os
+                        if os.path.exists(frame.file_path):
+                            os.remove(frame.file_path)
+                    frame.file_path = ""
+                except Exception:
+                    pass
+        except Exception:
+            pass
     except Exception as e:
         job.status = "failed"
         job.set_result({"error": str(e)})

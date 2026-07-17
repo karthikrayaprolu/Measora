@@ -17,6 +17,7 @@ import { ArrowRight, Camera, CheckCircle2, ScanLine, Ruler } from 'lucide-react'
    ════════════════════════════════════════════════════════════════════ */
 
 import { useAuth } from './contexts/AuthContext';
+import { Navbar } from './components/Navbar';
 
 function useAnimatedCounter(endValue, duration = 1500, decimals = 0) {
   const [value, setValue] = useState(0);
@@ -62,11 +63,8 @@ export default function LandingPage() {
         aria-label="Introduction"
         style={{
           position: 'relative',
-          width: '100vw',
-          maxWidth: '100vw',
+          width: '100%',
           minHeight: '100vh',
-          marginLeft: 'calc(-50vw + 50%)',
-          marginRight: 'calc(-50vw + 50%)',
           display: 'flex',
           flexDirection: 'column',
           backgroundImage: "url('/src/assets/hero-bg.jpg')",
@@ -80,7 +78,8 @@ export default function LandingPage() {
           style={{
             position: 'absolute',
             inset: 0,
-            backgroundColor: 'rgba(255, 255, 255, 0.4)',
+            backgroundColor: 'var(--color-canvas)',
+            opacity: 0.85,
             zIndex: 0
           }}
           aria-hidden="true"
@@ -92,37 +91,15 @@ export default function LandingPage() {
             position: 'absolute',
             bottom: 0, left: 0, right: 0,
             height: '120px',
-            background: 'linear-gradient(to bottom, rgba(255,255,255,0) 0%, var(--lp-bg, #ffffff) 100%)',
+            background: 'linear-gradient(to bottom, transparent 0%, var(--color-canvas) 100%)',
             zIndex: 0
           }}
           aria-hidden="true"
         />
 
         {/* ── NAV (Transparent over image) ──────────────────────────────── */}
-        <nav className="lp-nav" aria-label="Public navigation" style={{ position: 'relative', zIndex: 10, background: 'transparent', borderBottom: 'none' }}>
-          <Link className="brand" to="/">
-            <span className="brand-mark"><ScanLine size={18} /></span>
-            <span style={{ color: 'var(--color-ink)' }}>Measora</span>
-          </Link>
-          <div className="lp-nav-btns">
-            {user ? (
-              <Link to="/app" className="lp-nav-btn lp-nav-btn--filled">
-                Go to Dashboard
-              </Link>
-            ) : (
-              <>
-                <Link to="/login" className="lp-nav-btn lp-nav-btn--ghost" style={{ color: 'var(--color-ink)' }}>
-                  Sign in
-                </Link>
-                <Link to="/login" className="lp-nav-btn lp-nav-btn--filled">
-                  Start free
-                </Link>
-              </>
-            )}
-          </div>
-        </nav>
-
-        {/* ── HERO CONTENT ─────────────────────────────────────────────── */}
+        {/* ── NAV (Transparent over image) ──────────────────────────────── */}
+        <Navbar variant="transparent" inApp={false} />
         <div
           className="lp-hero"
           style={{
@@ -146,12 +123,12 @@ export default function LandingPage() {
               Precision body measurement
             </p>
 
-            <h1 className="lp-h1" style={{ fontSize: 'clamp(3rem, 7vw, 5rem)', lineHeight: 1.05, margin: 0, color: '#1a1a1a' }}>
+            <h1 className="lp-h1" style={{ fontSize: 'clamp(3rem, 7vw, 5rem)', lineHeight: 1.05, margin: 0, color: 'var(--color-ink)' }}>
               Your tape&nbsp;measure,<br />
               <em>reimagined.</em>
             </h1>
 
-            <p className="lp-lead" style={{ maxWidth: '600px', margin: '0 auto', fontSize: 'var(--text-lg)', color: '#2a2a2a' }}>
+            <p className="lp-lead" style={{ maxWidth: '600px', margin: '0 auto', fontSize: 'var(--text-lg)', color: 'var(--color-ink-muted)' }}>
               Two guided photos. A full set of body measurements.
               Size recommendations for every brand you buy from.
             </p>
@@ -161,7 +138,7 @@ export default function LandingPage() {
                 Take your measurements
                 <ArrowRight size={18} aria-hidden="true" />
               </Link>
-              <p className="lp-cta-sub" style={{ marginTop: 'var(--space-3)', color: '#2a2a2a', fontWeight: 500 }}>
+              <p className="lp-cta-sub" style={{ marginTop: 'var(--space-3)', color: 'var(--color-ink-muted)', fontWeight: 500 }}>
                 Free · No account required · Results in under 2 minutes
               </p>
             </div>

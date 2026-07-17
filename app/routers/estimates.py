@@ -44,6 +44,16 @@ def _bg_accurate(session_id: str):
         run_accurate_estimate(session_id, db)
     finally:
         db.close()
+        # Delete images since they are no longer needed
+        import shutil
+        import os
+        from app.core.config import settings
+        upload_dir = os.path.join(settings.UPLOAD_DIR, session_id)
+        if os.path.exists(upload_dir):
+            try:
+                shutil.rmtree(upload_dir)
+            except Exception:
+                pass
 
 
 # ─────────────────────────── FAST TIER ────────────────────────────────────────

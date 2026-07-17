@@ -158,6 +158,25 @@ export default function CaptureFlow() {
               ...curr,
               [pose]: { id: response.frame_id, url, landmarks: validation.landmarks || [] },
             }));
+            // Auto-confirm scale-critical points that returned HIGH confidence from validation
+            try {
+              const toAdd = [];
+              (validation.landmarks || []).forEach((pt, idx) => {
+                const conf = pt.confidence ?? 1;
+                if (SCALE_CRITICAL_POINTS.has(pt.name) && (pt.tier === 'HIGH' || conf >= 0.75)) {
+                  toAdd.push(`${pose}-${idx}`);
+                }
+              });
+              if (toAdd.length > 0) {
+                setConfirmedCriticalPoints(prev => {
+                  const next = new Set(prev);
+                  toAdd.forEach(k => next.add(k));
+                  return next;
+                });
+              }
+            } catch (e) {
+              // ignore
+            }
             // Go to side photo or review
             goTo(pose === 'A' ? 4 : 5);
           },
@@ -214,7 +233,23 @@ export default function CaptureFlow() {
       };
       return { ...curr, [pose]: { ...curr[pose], landmarks } };
     });
-  }, []);
+    // If this is a scale-critical point, mark it confirmed when the user moves it
+    setConfirmedCriticalPoints(prev => {
+      const key = `${pose}-${index}`;
+      if (prev.has(key)) return prev;
+      const next = new Set(prev);
+      // attempt to read the current frames state synchronously is unreliable here,
+      // but since movePoint just updated the frames to HIGH confidence, assume confirmation
+      // is desired when user manually adjusts a point.
+      // Only auto-confirm if the landmark name exists and is scale-critical.
+      const frame = frames[pose];
+      const landmark = frame?.landmarks?.[index];
+      if (landmark && SCALE_CRITICAL_POINTS.has(landmark.name)) {
+        next.add(key);
+      }
+      return next;
+    });
+  }, [frames]);
 
   const selectPoint = (pose, index) => {
     const point = frames[pose].landmarks[index];
@@ -345,6 +380,14 @@ export default function CaptureFlow() {
               if (frames[pose]?.url) URL.revokeObjectURL(frames[pose].url);
               setFrames(curr => ({ ...curr, [pose]: null }));
               setSelectedPoint(null);
+              // Remove any confirmed keys for this pose
+              setConfirmedCriticalPoints(prev => {
+                const next = new Set(prev);
+                for (const k of Array.from(next)) {
+                  if (k.startsWith(`${pose}-`)) next.delete(k);
+                }
+                return next;
+              });
               goTo(pose === 'A' ? 3 : 4, 'back');
             }}
             onSubmit={submit}
@@ -547,7 +590,7 @@ function Capture({ pose, busy, rejectionError, onChoose, animCls }) {
                 accept="image/*"
                 capture="environment"
                 disabled={busy}
-                onChange={(e) => choosePhoto(e, pose)}
+                onChange={(e) => onChoose(e, pose)}
               />
             </label>
             <label className="file-label">
@@ -560,7 +603,7 @@ function Capture({ pose, busy, rejectionError, onChoose, animCls }) {
                 type="file"
                 accept="image/jpeg,image/png"
                 disabled={busy}
-                onChange={(e) => choosePhoto(e, pose)}
+                onChange={(e) => onChoose(e, pose)}
               />
             </label>
           </>

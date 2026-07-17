@@ -140,6 +140,42 @@ export const useSizeRecommendation = () => {
   });
 };
 
+export const useMeasurements = (userId) => {
+  return useQuery({
+    queryKey: ['measurements', userId],
+    queryFn: async () => {
+      const { data } = await client.get(`/users/${userId}/profiles`);
+      return data;
+    },
+    enabled: !!userId,
+  });
+};
+
+export const useSaveMeasurement = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ userId, payload }) => {
+      const { data } = await client.post(`/users/${userId}/profiles`, payload);
+      return data;
+    },
+    onSuccess: (_, { userId }) => {
+      queryClient.invalidateQueries({ queryKey: ['measurements', userId] });
+    },
+  });
+};
+
+export const useDeleteMeasurement = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ userId, id }) => {
+      await client.delete(`/users/${userId}/profiles/${id}`);
+    },
+    onSuccess: (_, { userId }) => {
+      queryClient.invalidateQueries({ queryKey: ['measurements', userId] });
+    },
+  });
+};
+
 export const useResult = (sessionId) => {
   return useQuery({
     queryKey: ['result', sessionId],

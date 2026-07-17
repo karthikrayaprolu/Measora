@@ -1,6 +1,7 @@
 import { NavLink, Link } from 'react-router-dom';
 import { History, Moon, Ruler, ScanLine, Sun, UserRound } from 'lucide-react';
 import { useTheme } from './theme-context';
+import { Navbar } from './Navbar';
 
 export function AppShell({ children }) {
   const { theme, setTheme } = useTheme();
@@ -9,20 +10,7 @@ export function AppShell({ children }) {
 
   return (
     <div className="app-page">
-      <header className="topbar">
-        <Link className="brand" to="/">
-          <span className="brand-mark"><ScanLine size={19} /></span>
-          <span>Measora</span>
-        </Link>
-        <div style={{ display: 'flex', gap: 'var(--space-2)' }}>
-          <button className="icon-button" onClick={toggleTheme} aria-label={`Use ${isDark ? 'light' : 'dark'} theme`}>
-            {isDark ? <Sun size={21} /> : <Moon size={21} />}
-          </button>
-          <Link to="/app/profile" className="icon-button" aria-label="Profile">
-            <UserRound size={21} />
-          </Link>
-        </div>
-      </header>
+      <Navbar variant="solid" inApp={true} />
       {children}
       <nav className="tabbar" aria-label="Primary navigation">
         <Tab to="/app" end icon={Ruler}>Measure</Tab>

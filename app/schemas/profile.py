@@ -11,7 +11,9 @@ class ProfileMeasurementUpdate(BaseModel):
 
 
 class UserProfileResponse(BaseModel):
+    id: str
     user_id: str
+    profile_name: str
     captured_at: datetime
     age_days: int
     stale_warning: bool
@@ -25,3 +27,17 @@ class ProfileRecommendRequest(BaseModel):
     brand_id: str
     product_type: str
     fit_preference: str = "regular"
+
+
+class SavedMeasurementCreate(BaseModel):
+    name: str
+    measurements: List[MeasurementEntry]
+
+
+class SavedMeasurementResponse(BaseModel):
+    id: str
+    name: str
+    measurements: List[MeasurementEntry]
+    created_at: datetime
+
+    model_config = {"from_attributes": True}

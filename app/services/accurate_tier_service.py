@@ -1,4 +1,5 @@
 import time
+from datetime import datetime
 import math
 import json
 import cv2
@@ -9,6 +10,7 @@ from sqlalchemy.orm import Session as DBSession
 from app.db import models
 from app.core.config import settings
 from app.services.circumference_correction import get_correction_factor
+import os
 
 logger = logging.getLogger(__name__)
 
@@ -142,19 +144,20 @@ def _get_segmentation_widths(img_path: str, y_ratios: List[float]) -> List[float
         binary_mask = mask > 0.5
         h, w = binary_mask.shape
         
-        widths_px = []
+        widths_norm = []
         for y_ratio in y_ratios:
             y_idx = int(y_ratio * h)
             if y_idx < 0 or y_idx >= h:
-                widths_px.append(0.0)
+                widths_norm.append(0.0)
                 continue
             row = binary_mask[y_idx, :]
             indices = np.where(row)[0]
             if len(indices) > 0:
-                widths_px.append(float(indices[-1] - indices[0]))
+                # Divide by w to return a normalized width (0.0 to 1.0), matching MediaPipe landmarks
+                widths_norm.append(float(indices[-1] - indices[0]) / w)
             else:
-                widths_px.append(0.0)
-        return widths_px
+                widths_norm.append(0.0)
+        return widths_norm
     except Exception as e:
         print(f"Segmentation Error: {e}")
         return [0.0]*len(y_ratios)
@@ -360,9 +363,53 @@ def run_accurate_estimate(session_id: str, db: DBSession) -> None:
         job.status = "complete"
         job.processing_time_ms = elapsed_ms
         session.status = "complete"
-        
+        # Optionally persist measurements to the user's profile (if requested)
+        try:
+            if session.store_profile:
+                profile = db.query(models.UserProfile).filter(models.UserProfile.user_id == session.user_id).first()
+                measurements_list = [{"iso_name": n, "value_cm": v, "residual_error_cm": r} for n, v, r, c in measurements]
+                if profile is None:
+                    profile = models.UserProfile(user_id=session.user_id)
+                    profile.set_measurements(measurements_list)
+                    db.add(profile)
+                else:
+                    profile.set_measurements(measurements_list)
+                    profile.updated_at = datetime.utcnow()
+
+        except Exception as e:
+            logger.exception(f"Failed to persist user profile measurements: {e}")
+
+        # Remove stored image files after processing to avoid retaining PII images
+        try:
+            all_frames = frames_a + frames_b
+            for frame in all_frames:
+                try:
+                    if frame.file_path and os.path.exists(frame.file_path):
+                        os.remove(frame.file_path)
+                    frame.file_path = ""
+                except Exception:
+                    logger.exception(f"Failed to delete frame file: {getattr(frame, 'file_path', None)}")
+        except Exception:
+            logger.exception("Failed to cleanup frame files")
     except Exception as e:
-        job.status = "failed"
-        job.set_result({"error": str(e)})
+            logger.exception("Accurate estimate failed for session %s: %s", session_id, e)
+            # Rollback any partial transaction to avoid 'current transaction is aborted' errors
+            try:
+                db.rollback()
+            except Exception:
+                logger.exception("Failed to rollback DB session for session %s", session_id)
+
+            try:
+                job.status = "failed"
+                job.set_result({"error": str(e)})
+                db.commit()
+            except Exception:
+                # If commit also fails, ensure DB session is clean and log
+                try:
+                    db.rollback()
+                except Exception:
+                    pass
+                logger.exception("Failed to mark job failed in DB for session %s", session_id)
+            return
         
     db.commit()

@@ -43,7 +43,9 @@ app = FastAPI(
 # ─── CORS ──────────────────────────────────────────────────────────────────────
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Allows connections from mobile apps (capacitor://localhost)
+    # Allow specific origins so the Access-Control-Allow-Origin header is set
+    # (browsers block '*' when credentials are allowed).
+    allow_origins=["http://localhost:5173", "http://localhost:3000", "capacitor://localhost"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
