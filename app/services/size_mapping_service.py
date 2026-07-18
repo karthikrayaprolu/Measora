@@ -95,7 +95,7 @@ def _score_entry(
         ]
 
     if not checks or all(v is None for _, _, _, v in checks):
-        return 0.0, False
+        return 0.0, False, None
 
     scores_with_weights = []
     total_weight = 0.0

@@ -32,12 +32,14 @@ class ProfileRecommendRequest(BaseModel):
 class SavedMeasurementCreate(BaseModel):
     name: str
     measurements: List[MeasurementEntry]
+    recommended_size: Optional[str] = None
 
 
 class SavedMeasurementResponse(BaseModel):
     id: str
     name: str
     measurements: List[MeasurementEntry]
+    recommended_size: Optional[str] = None
     created_at: datetime
 
     model_config = {"from_attributes": True}

@@ -293,13 +293,13 @@ def save_measurement_set(
         profile = models.UserProfile(user_id=user_id)
         db.add(profile)
 
-    saved = models.SavedMeasurement(user_id=user_id, name=payload.name)
+    saved = models.SavedMeasurement(user_id=user_id, name=payload.name, recommended_size=payload.recommended_size)
     saved.set_measurements([m.model_dump() for m in payload.measurements])
     db.add(saved)
     db.commit()
     db.refresh(saved)
 
-    return SavedMeasurementResponse(id=saved.id, name=saved.name, measurements=saved.get_measurements(), created_at=saved.created_at)
+    return SavedMeasurementResponse(id=saved.id, name=saved.name, measurements=saved.get_measurements(), created_at=saved.created_at, recommended_size=saved.recommended_size)
 
 
 @router.get("/{user_id}/measurements", response_model=List[SavedMeasurementResponse])
@@ -318,7 +318,7 @@ def list_measurement_sets(
         .all()
     )
 
-    return [SavedMeasurementResponse(id=i.id, name=i.name, measurements=i.get_measurements(), created_at=i.created_at) for i in items]
+    return [SavedMeasurementResponse(id=i.id, name=i.name, measurements=i.get_measurements(), created_at=i.created_at, recommended_size=i.recommended_size) for i in items]
 
 
 @router.delete("/{user_id}/measurements/{measurement_id}", status_code=204)

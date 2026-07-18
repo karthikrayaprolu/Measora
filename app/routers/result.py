@@ -46,47 +46,34 @@ def get_result(
         .first()
     )
 
-    # Get accurate-tier measurements
     db_measurements = (
         db.query(models.Measurement)
-        .filter(
-            models.Measurement.session_id == session_id,
-            models.Measurement.tier == "accurate",
-        )
+        .filter(models.Measurement.session_id == session_id)
         .all()
     )
 
-    # Fall back to fast-tier measurements if accurate not ready
+    accurate_measurements = [m for m in db_measurements if m.tier == "accurate"]
+    fast_measurements = [m for m in db_measurements if m.tier == "fast"]
+
     measurements = []
     tier = "fast"
     label = "Estimated size"
+
+    active_measurements = accurate_measurements if accurate_measurements else fast_measurements
     
-    if db_measurements:
-        measurements = [
-            {
-                "iso_name": m.iso_name, 
-                "value_cm": m.value_cm, 
-                "residual_error_cm": m.residual_error_cm,
-                "was_clipped": getattr(m, "was_clipped", False)
-            }
-            for m in db_measurements
-        ]
+    if accurate_measurements:
         tier = "accurate"
         label = "Confirmed size"
-    else:
-        # Check fast estimate job
-        fast_job = (
-            db.query(models.Job)
-            .filter(models.Job.session_id == session_id, models.Job.job_type == "fast_estimate")
-            .first()
-        )
-        if fast_job and fast_job.result_json:
-            result_data = fast_job.get_result()
-            rough = result_data.get("rough_measurements_cm", {})
-            measurements = [
-                {"iso_name": f"{k}_circumference", "value_cm": v, "residual_error_cm": 0.0}
-                for k, v in rough.items()
-            ]
+
+    measurements = [
+        {
+            "iso_name": m.iso_name, 
+            "value_cm": m.value_cm, 
+            "residual_error_cm": m.residual_error_cm,
+            "was_clipped": getattr(m, "was_clipped", False)
+        }
+        for m in active_measurements
+    ]
 
     result = {
         "session_id": session_id,

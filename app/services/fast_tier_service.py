@@ -46,9 +46,23 @@ def run_fast_estimate(session_id: str, db: DBSession) -> None:
         meas_dict = {m[0]: m[1] for m in measurements}
         
         chest_cm = meas_dict.get("chest_circumference", 100.0)
-        waist_cm = meas_dict.get("waist_circumference", 90.0)
-        hip_cm = meas_dict.get("hip_circumference", 100.0)
         size_label = _pick_size(chest_cm)
+
+        # Write all extracted measurements to DB
+        db.query(models.Measurement).filter(
+            models.Measurement.session_id == session_id,
+            models.Measurement.tier == "fast"
+        ).delete()
+
+        for m_tuple in measurements:
+            m = models.Measurement(
+                session_id=session_id, 
+                tier="fast", 
+                iso_name=m_tuple[0],
+                value_cm=m_tuple[1], 
+                residual_error_cm=m_tuple[2] if len(m_tuple) > 2 else 0.0
+            )
+            db.add(m)
 
         elapsed_ms = int((time.time() - t_start) * 1000)
 
@@ -57,11 +71,6 @@ def run_fast_estimate(session_id: str, db: DBSession) -> None:
             "tier": "fast",
             "label": "Estimated size",
             "size": size_label,
-            "rough_measurements_cm": {
-                "chest": chest_cm,
-                "waist": waist_cm,
-                "hip": hip_cm,
-            },
             "processing_time_ms": elapsed_ms,
         }
 

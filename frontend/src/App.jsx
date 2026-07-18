@@ -12,6 +12,7 @@ const ProfilePage = lazy(() => import('./pages/ProfilePage'));
 const AuthPage = lazy(() => import('./pages/AuthPage'));
 
 import { AuthProvider, useAuth } from './contexts/AuthContext';
+import { Toaster } from 'react-hot-toast';
 
 function RouteLoader() {
   return <main className="app-main"><div className="skeleton" style={{ height: 180 }} aria-label="Loading page" /></main>;
@@ -21,6 +22,7 @@ export default function App() {
   return (
     <Suspense fallback={<RouteLoader />}>
       <AuthProvider>
+        <Toaster position="bottom-center" />
         <Routes>
           <Route path="/" element={<LandingPage />} />
           <Route path="/login" element={<AuthPage />} />

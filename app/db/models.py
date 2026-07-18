@@ -272,6 +272,7 @@ class SavedMeasurement(Base):
     user_id = Column(String(64), nullable=False, index=True)
     name = Column(String(128), nullable=False)
     measurements_json = Column(Text, default="[]")
+    recommended_size = Column(String(32), nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)
 
     def get_measurements(self) -> list:

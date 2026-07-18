@@ -989,7 +989,7 @@ function FrameReview({ pose, frame, selectedPoint, onSelectPoint, onDeselectPoin
                   <div className="point-label" style={{
                     transform: 'translate(-50%, calc(-100% - 10px))',
                     background: selected ? 'var(--color-brass)' : (isScaleCritical && !isConfirmed ? '#FF3B30' : 'rgba(28, 28, 30, 0.85)'),
-                    color: selected || (isScaleCritical && !isConfirmed) ? '#fff' : 'var(--color-white)',
+                    color: '#fff',
                     fontWeight: isScaleCritical ? 700 : 500
                   }}>
                     {name}

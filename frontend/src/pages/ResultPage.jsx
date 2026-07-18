@@ -1,11 +1,12 @@
-import { useState, useEffect } from 'react';
-import { ArrowLeft, CheckCircle2, ChevronDown, RefreshCw, Ruler } from 'lucide-react';
+import { useState, useEffect, useRef } from 'react';
+import { ArrowLeft, CheckCircle2, ChevronDown, RefreshCw, Ruler, AlertTriangle } from 'lucide-react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useBrands, useResult, useSession, useSizeRecommendation, useSaveMeasurement } from '../api/hooks';
 import { useAuth } from '../contexts/AuthContext';
 import { Banner } from '../components/ui/Banner';
 import { Button } from '../components/ui/Button';
 import { Card } from '../components/ui/Card';
+import toast from 'react-hot-toast';
 
 export default function ResultPage() {
   const { sessionId } = useParams();
@@ -19,23 +20,37 @@ export default function ResultPage() {
   const saveMeasurement = useSaveMeasurement();
   const [brand, setBrand] = useState('');
   const [expanded, setExpanded] = useState(false);
+  const [showSaveModal, setShowSaveModal] = useState(false);
+  const [saveName, setSaveName] = useState('');
+  const inputRef = useRef(null);
+
+  useEffect(() => {
+    if (showSaveModal && inputRef.current) {
+      inputRef.current.focus();
+    }
+  }, [showSaveModal]);
   
   const processing = ['queued', 'processing', 'fast_processing', 'accurate_processing'].includes(session?.status);
 
 
+  const lastTierRef = useRef(null);
+
   useEffect(() => {
-    if (!isLoading && !processing && !isError && result?.measurements?.length > 0 && recommendationMutation.isIdle) {
-      recommendationMutation.mutate({
-        sessionId,
-        payload: {
-          product_type: productType,
-          fit_preference: session?.fit_preference || 'regular',
-          preferred_size_system: 'EU',
-          use_tier: 'accurate',
-        }
-      });
+    if (!isLoading && !processing && !isError && result?.measurements?.length > 0) {
+      if (lastTierRef.current !== result.tier) {
+        lastTierRef.current = result.tier;
+        recommendationMutation.mutate({
+          sessionId,
+          payload: {
+            product_type: productType,
+            fit_preference: session?.fit_preference || 'regular',
+            preferred_size_system: 'EU',
+            use_tier: result.tier,
+          }
+        });
+      }
     }
-  }, [isLoading, processing, isError, result, recommendationMutation.isIdle, sessionId, productType, session]);
+  }, [isLoading, processing, isError, result, sessionId, productType, session]);
 
   if (isLoading || processing) {
     return <ResultLoading sessionId={sessionId} onBack={() => navigate('/app')} />;
@@ -79,7 +94,10 @@ export default function ResultPage() {
             </p>
             <div className="result-size">{recommendation.recommended_size || '—'}</div>
             {confidence?.score != null && (
-              <span className="confidence"><CheckCircle2 size={16} />{Math.round(confidence.score * 100)}% match</span>
+              <span className={`confidence ${confidence.level === 'Low' ? 'confidence--low' : confidence.level === 'Medium' ? 'confidence--medium' : ''}`}>
+                {confidence.level === 'Low' ? <AlertTriangle size={16} /> : <CheckCircle2 size={16} />}
+                {Math.round(confidence.score * 100)}% match
+              </span>
             )}
           </section>
         ) : (
@@ -107,23 +125,56 @@ export default function ResultPage() {
         </section>
 
         <div className="sticky-action">
-          <div style={{ display: 'flex', gap: 12 }}>
-            <Button onClick={() => navigate('/app')}>Measure another item</Button>
-            <Button variant="primary" fullWidth disabled={!result?.measurements || !user} isLoading={saveMeasurement.isPending} onClick={async () => {
-              const name = window.prompt('Save these measurements as (e.g. "John - June 2026"):');
-              if (!name) return;
-              try {
-                await saveMeasurement.mutateAsync({ userId: user.id, payload: { name, measurements: result.measurements } });
-                alert('Measurements saved to your history.');
-              } catch (e) {
-                alert('Failed to save measurements.');
-              }
-            }}>Save</Button>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: 12 }}>
+            <Button fullWidth onClick={() => navigate('/app')}>Measure another item</Button>
+            <Button variant="primary" fullWidth disabled={!result?.measurements || !user} onClick={() => setShowSaveModal(true)}>Save</Button>
           </div>
         </div>
       </main>
+
+      {showSaveModal && (
+        <div className="modal-overlay" onClick={() => setShowSaveModal(false)}>
+          <div className="modal-content" onClick={e => e.stopPropagation()} role="dialog" aria-modal="true" aria-labelledby="modal-title">
+            <h3 id="modal-title" className="modal-title">Save measurements</h3>
+            <p className="modal-body">Name this profile so you can easily identify it later.</p>
+            
+            <input 
+              ref={inputRef}
+              type="text" 
+              className="modal-input" 
+              placeholder='e.g. "John - June 2026"' 
+              value={saveName} 
+              onChange={e => setSaveName(e.target.value)} 
+              onKeyDown={e => {
+                if (e.key === 'Enter' && saveName.trim()) {
+                  handleSave();
+                } else if (e.key === 'Escape') {
+                  setShowSaveModal(false);
+                }
+              }}
+            />
+            
+            <div className="modal-actions">
+              <Button variant="text" onClick={() => setShowSaveModal(false)}>Cancel</Button>
+              <Button variant="primary" disabled={!saveName.trim() || saveMeasurement.isPending} isLoading={saveMeasurement.isPending} onClick={handleSave}>Save profile</Button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
+
+  async function handleSave() {
+    if (!saveName.trim()) return;
+    try {
+      await saveMeasurement.mutateAsync({ userId: user.id, payload: { name: saveName.trim(), measurements: result.measurements, recommended_size: recommendation?.recommended_size } });
+      toast.success('Measurements saved to your history!');
+      setShowSaveModal(false);
+      setSaveName('');
+    } catch (e) {
+      toast.error('Failed to save measurements. Please try again.');
+    }
+  }
 }
 
 function ResultLoading({ onBack }) {
