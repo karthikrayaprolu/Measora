@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router-dom';
-import { RefreshCw, AlertCircle } from 'lucide-react';
+import { AlertCircle } from 'lucide-react';
 import { useProducts } from '../api/hooks';
 import { Button } from '../components/ui/Button';
 

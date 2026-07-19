@@ -1,6 +1,8 @@
 import { lazy, Suspense } from 'react';
 import { Navigate, Outlet, Route, Routes } from 'react-router-dom';
 import { AppShell } from './components/AppShell';
+import { AuthProvider, useAuth } from './contexts/AuthContext';
+import { Toaster } from 'react-hot-toast';
 
 const LandingPage = lazy(() => import('./LandingPage'));
 const Dashboard = lazy(() => import('./pages/Dashboard'));
@@ -10,9 +12,6 @@ const ResultPage = lazy(() => import('./pages/ResultPage'));
 const HistoryPage = lazy(() => import('./pages/HistoryPage'));
 const ProfilePage = lazy(() => import('./pages/ProfilePage'));
 const AuthPage = lazy(() => import('./pages/AuthPage'));
-
-import { AuthProvider, useAuth } from './contexts/AuthContext';
-import { Toaster } from 'react-hot-toast';
 
 function RouteLoader() {
   return <main className="app-main"><div className="skeleton" style={{ height: 180 }} aria-label="Loading page" /></main>;

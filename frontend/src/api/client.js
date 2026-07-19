@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { supabase } from '../lib/supabase';
 
 export const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
 
@@ -9,8 +10,6 @@ const client = axios.create({
     'Content-Type': 'application/json',
   },
 });
-
-import { supabase } from '../lib/supabase';
 
 // Add a request interceptor to attach the auth token
 client.interceptors.request.use(async (config) => {
