@@ -18,6 +18,7 @@ export default function ResultPage() {
   const recommendationMutation = useSizeRecommendation();
   const { user } = useAuth();
   const saveMeasurement = useSaveMeasurement();
+  // brand is the currently-selected brand id; auto-defaults to the first brand returned.
   const [brand, setBrand] = useState('');
   const [expanded, setExpanded] = useState(false);
   const [showSaveModal, setShowSaveModal] = useState(false);
@@ -29,28 +30,45 @@ export default function ResultPage() {
       inputRef.current.focus();
     }
   }, [showSaveModal]);
-  
+
   const processing = ['queued', 'processing', 'fast_processing', 'accurate_processing'].includes(session?.status);
 
-
-  const lastTierRef = useRef(null);
-
+  // Auto-select the first brand once the brands list loads.
   useEffect(() => {
-    if (!isLoading && !processing && !isError && result?.measurements?.length > 0) {
-      if (lastTierRef.current !== result.tier) {
-        lastTierRef.current = result.tier;
+    if (brandsData?.brands?.length > 0 && !brand) {
+      setBrand(brandsData.brands[0].id);
+    }
+  }, [brandsData, brand]);
+
+  const lastRecommendationKeyRef = useRef(null);
+
+  // Trigger (or re-trigger) a size recommendation whenever the result tier
+  // or the selected brand changes.
+  useEffect(() => {
+    const activeBrandId = brand || brandsData?.brands?.[0]?.id;
+    if (
+      !isLoading &&
+      !processing &&
+      !isError &&
+      result?.measurements?.length > 0 &&
+      activeBrandId
+    ) {
+      const key = `${result.tier}-${activeBrandId}`;
+      if (lastRecommendationKeyRef.current !== key) {
+        lastRecommendationKeyRef.current = key;
         recommendationMutation.mutate({
           sessionId,
           payload: {
+            brand_id: activeBrandId,
             product_type: productType,
             fit_preference: session?.fit_preference || 'regular',
             preferred_size_system: 'EU',
             use_tier: result.tier,
-          }
+          },
         });
       }
     }
-  }, [isLoading, processing, isError, result, sessionId, productType, session]);
+  }, [isLoading, processing, isError, result, sessionId, productType, session, brand, brandsData]);
 
   if (isLoading || processing) {
     return <ResultLoading sessionId={sessionId} onBack={() => navigate('/app')} />;

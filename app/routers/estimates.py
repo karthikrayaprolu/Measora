@@ -5,6 +5,8 @@ POST /v1/sessions/{session_id}/accurate-estimate  — trigger Accurate Tier
 GET  /v1/sessions/{session_id}/accurate-estimate  — retrieve Accurate Tier result
 REQ-200-01 → REQ-200-08, REQ-300-01 → REQ-300-09
 """
+import os
+import shutil
 import threading
 
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, status
@@ -44,10 +46,7 @@ def _bg_accurate(session_id: str):
         run_accurate_estimate(session_id, db)
     finally:
         db.close()
-        # Delete images since they are no longer needed
-        import shutil
-        import os
-        from app.core.config import settings
+        # Delete uploaded images once processing is complete
         upload_dir = os.path.join(settings.UPLOAD_DIR, session_id)
         if os.path.exists(upload_dir):
             try:

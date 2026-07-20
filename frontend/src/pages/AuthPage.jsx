@@ -8,7 +8,8 @@ const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 function FormInput({ label, id, type, value, onChange, error, hint, icon, autoComplete, autoFocus }) {
   const [showPassword, setShowPassword] = useState(false);
-  const inputId = id || useId();
+  const generatedId = useId();
+  const inputId = id || generatedId;
   const errorId = `${inputId}-error`;
   const hintId = `${inputId}-hint`;
   
@@ -99,6 +100,27 @@ export default function AuthPage() {
   
   const navigate = useNavigate();
   const { user } = useAuth();
+  const [resetSent, setResetSent] = useState(false);
+  const [resetLoading, setResetLoading] = useState(false);
+
+  const handleForgotPassword = async () => {
+    if (!email) {
+      setFieldErrors(prev => ({ ...prev, email: 'Enter your email address first' }));
+      return;
+    }
+    setResetLoading(true);
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/reset-password`,
+      });
+      if (error) throw error;
+      setResetSent(true);
+    } catch (err) {
+      setFormError(err.message || 'Could not send reset email. Please try again.');
+    } finally {
+      setResetLoading(false);
+    }
+  };
 
   if (user) {
     return <Navigate to="/app" replace />;
@@ -258,9 +280,20 @@ export default function AuthPage() {
 
               {isLogin && (
                 <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '-4px' }}>
-                  <Link to="/forgot-password" style={{ color: 'var(--color-brass)', fontSize: 'var(--text-sm)', fontWeight: 600, textDecoration: 'none' }}>
-                    Forgot password?
-                  </Link>
+                  {resetSent ? (
+                    <span style={{ color: 'var(--color-success)', fontSize: 'var(--text-sm)' }}>
+                      Reset link sent — check your inbox.
+                    </span>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={handleForgotPassword}
+                      disabled={resetLoading}
+                      style={{ background: 'none', border: 'none', color: 'var(--color-brass)', fontSize: 'var(--text-sm)', fontWeight: 600, cursor: 'pointer', padding: 0 }}
+                    >
+                      {resetLoading ? 'Sending…' : 'Forgot password?'}
+                    </button>
+                  )}
                 </div>
               )}
 

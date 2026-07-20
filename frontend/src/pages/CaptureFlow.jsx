@@ -90,10 +90,6 @@ const POINT_FRIENDLY_NAMES = {
 
 const SCALE_CRITICAL_POINTS = new Set(['nose', 'left_ear', 'right_ear', 'left_ankle', 'right_ankle', 'left_heel', 'right_heel']);
 
-/* ── Drag pad constants ─────────────────────────────────────────────── */
-const PAD_RADIUS = 44; // max thumb travel in px from center
-const PAD_SCALE = 0.006; // how much pad travel translates to normalized coords
-
 /* ════════════════════════════════════════════════════════════════════
    Main Component
    ════════════════════════════════════════════════════════════════════ */
@@ -120,6 +116,14 @@ export default function CaptureFlow() {
   useEffect(() => {
     if (isProcessing) navigate(`/app/session/${sessionId}/result`, { replace: true });
   }, [isProcessing, navigate, sessionId]);
+
+  // Cleanup object URLs on unmount
+  useEffect(() => {
+    return () => {
+      if (frames.A?.url) URL.revokeObjectURL(frames.A.url);
+      if (frames.B?.url) URL.revokeObjectURL(frames.B.url);
+    };
+  }, [frames.A?.url, frames.B?.url]);
 
   const goTo = (next, dir = 'forward') => {
     setDirection(dir);
@@ -354,6 +358,7 @@ export default function CaptureFlow() {
             busy={busy}
             rejectionError={step === 3 ? rejectionError : null}
             onChoose={choosePhoto}
+            onCaptureNative={captureNativePhoto}
             animCls={animCls}
           />
         )}
@@ -364,6 +369,7 @@ export default function CaptureFlow() {
             busy={busy}
             rejectionError={step === 4 ? rejectionError : null}
             onChoose={choosePhoto}
+            onCaptureNative={captureNativePhoto}
             animCls={animCls}
           />
         )}
@@ -475,14 +481,8 @@ function Guide({ onContinue, animCls }) {
 /* ════════════════════════════════════════════════════════════════════
    Step 2 & 3: Capture / Upload screen
    ════════════════════════════════════════════════════════════════════ */
-function Capture({ pose, busy, rejectionError, onChoose, animCls }) {
+function Capture({ pose, busy, rejectionError, onChoose, onCaptureNative, animCls }) {
   const isFront = pose === 'A';
-
-  // ⚠ ASSUMPTION: WebSocket guidance signals have shape:
-  //   { status: 'ok'|'adjust'|'error', message: string }
-  // Live guidance is wired to the same session but no WS needed for upload flow.
-  // This state is a placeholder for a future WS integration.
-  const [guidance] = useState(null); // { status, message }
 
   return (
     <div className={animCls} style={{ display: 'flex', flexDirection: 'column', flex: 1, gap: 'var(--space-4)' }}>
@@ -512,20 +512,6 @@ function Capture({ pose, busy, rejectionError, onChoose, animCls }) {
           alt=""
           aria-hidden="true"
         />
-
-        {/* Live guidance chip — WebSocket signal */}
-        {guidance && (
-          <div
-            className={`guidance-chip guidance-chip--${guidance.status}`}
-            role="status"
-            aria-live="polite"
-          >
-            {guidance.status === 'ok' && <CheckCircle2 size={12} aria-hidden="true" />}
-            {guidance.status === 'adjust' && <AlertCircle size={12} aria-hidden="true" />}
-            {guidance.status === 'error' && <AlertCircle size={12} aria-hidden="true" />}
-            {guidance.message}
-          </div>
-        )}
 
         {/* Loading overlay */}
         {busy && (
@@ -562,7 +548,7 @@ function Capture({ pose, busy, rejectionError, onChoose, animCls }) {
           <>
             <button 
               className="button button--primary button--full" 
-              onClick={() => captureNativePhoto(pose, CameraSource.Camera)}
+          onClick={() => onCaptureNative(pose, CameraSource.Camera)}
               disabled={busy}
             >
               <Camera size={19} aria-hidden="true" />
@@ -570,7 +556,7 @@ function Capture({ pose, busy, rejectionError, onChoose, animCls }) {
             </button>
             <button 
               className="button button--outline button--full" 
-              onClick={() => captureNativePhoto(pose, CameraSource.Photos)}
+              onClick={() => onCaptureNative(pose, CameraSource.Photos)}
               disabled={busy}
             >
               <ImageIcon size={18} aria-hidden="true" />

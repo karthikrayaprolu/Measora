@@ -5,7 +5,7 @@ DELETE /v1/admin/brands/{brand_id}                — remove a brand
 REQ-400-07, REQ-NFR-08
 """
 import json
-from datetime import datetime
+from datetime import datetime, timezone
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
@@ -97,7 +97,7 @@ def update_size_charts(
         supported.append(product_type)
         brand.set_supported_products(supported)
 
-    brand.updated_at = datetime.utcnow()
+    brand.updated_at = datetime.now(timezone.utc)
     db.commit()
 
     return {

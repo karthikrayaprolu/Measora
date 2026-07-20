@@ -1,6 +1,10 @@
 import json
 import uuid
-from datetime import datetime
+from datetime import datetime, timezone
+
+def utcnow():
+    return datetime.now(timezone.utc)
+
 
 from sqlalchemy import (
     Boolean,
@@ -37,9 +41,9 @@ class Session(Base):
     store_profile = Column(Boolean, default=False)
     has_scale_mismatch = Column(Boolean, default=False)
     status = Column(String(32), default="awaiting_capture")
-    created_at = Column(DateTime, default=datetime.utcnow)
+    created_at = Column(DateTime, default=utcnow)
     expires_at = Column(DateTime)
-    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    updated_at = Column(DateTime, default=utcnow, onupdate=utcnow)
 
     frames = relationship("Frame", back_populates="session", cascade="all, delete-orphan")
     jobs = relationship("Job", back_populates="session", cascade="all, delete-orphan")
@@ -70,7 +74,7 @@ class Frame(Base):
     file_path = Column(String(512), nullable=False)
     accepted = Column(Boolean, default=True)
     landmarks_json = Column(Text)
-    created_at = Column(DateTime, default=datetime.utcnow)
+    created_at = Column(DateTime, default=utcnow)
 
     session = relationship("Session", back_populates="frames")
 
@@ -88,8 +92,8 @@ class Job(Base):
     result_json = Column(Text)
     estimated_seconds = Column(Integer)
     processing_time_ms = Column(Integer)
-    created_at = Column(DateTime, default=datetime.utcnow)
-    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    created_at = Column(DateTime, default=utcnow)
+    updated_at = Column(DateTime, default=utcnow, onupdate=utcnow)
 
     session = relationship("Session", back_populates="jobs")
 
@@ -116,7 +120,7 @@ class Measurement(Base):
     value_cm = Column(Float, nullable=False)
     residual_error_cm = Column(Float)
     was_clipped = Column(Boolean, default=False)
-    created_at = Column(DateTime, default=datetime.utcnow)
+    created_at = Column(DateTime, default=utcnow)
 
     session = relationship("Session", back_populates="measurements")
 
@@ -141,7 +145,7 @@ class SizeRecommendation(Base):
     tier_used = Column(String(16))
     share_token = Column(String(32))
     dominant_constraint = Column(String(64))
-    created_at = Column(DateTime, default=datetime.utcnow)
+    created_at = Column(DateTime, default=utcnow)
 
     session = relationship("Session", back_populates="size_recommendations")
 
@@ -164,8 +168,8 @@ class Brand(Base):
     id = Column(String(16), primary_key=True, default=_new_id)
     name = Column(String(128), nullable=False)
     supported_products = Column(Text, default="[]")
-    created_at = Column(DateTime, default=datetime.utcnow)
-    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    created_at = Column(DateTime, default=utcnow)
+    updated_at = Column(DateTime, default=utcnow, onupdate=utcnow)
 
     size_chart_entries = relationship(
         "SizeChartEntry", back_populates="brand", cascade="all, delete-orphan"
@@ -213,7 +217,7 @@ class SizeChartEntry(Base):
     foot_width_min_mm = Column(Float)
     foot_width_max_mm = Column(Float)
 
-    created_at = Column(DateTime, default=datetime.utcnow)
+    created_at = Column(DateTime, default=utcnow)
 
     brand = relationship("Brand", back_populates="size_chart_entries")
 
@@ -240,8 +244,8 @@ class UserProfile(Base):
     confidence_scores = Column(Text, default="{}")
     capture_metadata = Column(Text, default="{}")
     consent_given = Column(Boolean, default=True)
-    created_at = Column(DateTime, default=datetime.utcnow)
-    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    created_at = Column(DateTime, default=utcnow)
+    updated_at = Column(DateTime, default=utcnow, onupdate=utcnow)
 
     def get_measurements(self) -> list:
         try:
@@ -273,7 +277,7 @@ class SavedMeasurement(Base):
     name = Column(String(128), nullable=False)
     measurements_json = Column(Text, default="[]")
     recommended_size = Column(String(32), nullable=True)
-    created_at = Column(DateTime, default=datetime.utcnow)
+    created_at = Column(DateTime, default=utcnow)
 
     def get_measurements(self) -> list:
         try:
@@ -304,4 +308,4 @@ class TrainingDataLog(Base):
     
     ground_truth_json = Column(Text) # From UserProfile.measurements
     
-    created_at = Column(DateTime, default=datetime.utcnow)
+    created_at = Column(DateTime, default=utcnow)

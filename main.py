@@ -41,11 +41,20 @@ app = FastAPI(
 )
 
 # ─── CORS ──────────────────────────────────────────────────────────────────────
+# Read allowed origins from env so production domain is set without code changes.
+# Example (Render / Vercel env var):
+#   ALLOWED_ORIGINS=https://measora.io,https://www.measora.io
+_raw_origins = os.getenv(
+    "ALLOWED_ORIGINS",
+    "http://localhost:5173,http://localhost:3000,capacitor://localhost",
+)
+ALLOWED_ORIGINS = [o.strip() for o in _raw_origins.split(",") if o.strip()]
+
 app.add_middleware(
     CORSMiddleware,
     # Allow specific origins so the Access-Control-Allow-Origin header is set
     # (browsers block '*' when credentials are allowed).
-    allow_origins=["http://localhost:5173", "http://localhost:3000", "capacitor://localhost"],
+    allow_origins=ALLOWED_ORIGINS,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

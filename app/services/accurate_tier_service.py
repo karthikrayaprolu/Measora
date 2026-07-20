@@ -1,5 +1,5 @@
 import time
-from datetime import datetime
+from datetime import datetime, timezone
 import math
 import json
 import cv2
@@ -374,7 +374,7 @@ def run_accurate_estimate(session_id: str, db: DBSession) -> None:
                     db.add(profile)
                 else:
                     profile.set_measurements(measurements_list)
-                    profile.updated_at = datetime.utcnow()
+                    profile.updated_at = datetime.now(timezone.utc)
 
         except Exception as e:
             logger.exception(f"Failed to persist user profile measurements: {e}")

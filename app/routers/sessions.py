@@ -3,7 +3,7 @@ POST /v1/sessions          — create a new measurement session
 GET  /v1/sessions/{id}     — get session status
 REQ-000-01 → REQ-000-07, REQ-100-09
 """
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import List
 
 from fastapi import APIRouter, Depends
@@ -56,7 +56,7 @@ def create_session(
         fit_preference=payload.fit_preference.value,
         store_profile=payload.store_profile,
         status=SessionStatus.awaiting_capture.value,
-        expires_at=datetime.utcnow() + timedelta(hours=2),
+        expires_at=datetime.now(timezone.utc) + timedelta(hours=2),
     )
     session.set_optional_poses(optional)
     db.add(session)

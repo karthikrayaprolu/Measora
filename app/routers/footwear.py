@@ -6,7 +6,7 @@ REQ-3B0-01 → REQ-3B0-06
 """
 import os
 import threading
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Optional
 
 from fastapi import APIRouter, Depends, File, Form, UploadFile
@@ -71,7 +71,7 @@ async def upload_foot_frame(
     # Save frame
     upload_dir = os.path.join(settings.UPLOAD_DIR, session_id, "footwear")
     os.makedirs(upload_dir, exist_ok=True)
-    ts = datetime.utcnow().strftime("%Y%m%d%H%M%S%f")
+    ts = datetime.now(timezone.utc).strftime("%Y%m%d%H%M%S%f")
     ext = (image.filename or "foot.jpg").rsplit(".", 1)[-1].lower()
     filename = f"D_{view}_{foot}_{ts}.{ext}"
     file_path = os.path.join(upload_dir, filename)

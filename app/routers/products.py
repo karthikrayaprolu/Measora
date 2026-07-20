@@ -16,9 +16,9 @@ PRODUCT_CATALOGUE = [
         required_poses=["A", "B"],
         optional_poses=["C"],
         pose_illustrations={
-            "A": "https://cdn.measora.io/poses/shirt_front.png",
-            "B": "https://cdn.measora.io/poses/shirt_side.png",
-            "C": "https://cdn.measora.io/poses/shirt_back.png",
+            "A": "/assets/poses/pose_A.png",
+            "B": "/assets/poses/pose_B.png",
+            "C": "/assets/poses/pose_C.png",
         },
     ),
     ProductResponse(
@@ -27,9 +27,9 @@ PRODUCT_CATALOGUE = [
         required_poses=["A", "B"],
         optional_poses=["C"],
         pose_illustrations={
-            "A": "https://cdn.measora.io/poses/tshirt_front.png",
-            "B": "https://cdn.measora.io/poses/tshirt_side.png",
-            "C": "https://cdn.measora.io/poses/tshirt_back.png",
+            "A": "/assets/poses/pose_A.png",
+            "B": "/assets/poses/pose_B.png",
+            "C": "/assets/poses/pose_C.png",
         },
     ),
     ProductResponse(
@@ -38,8 +38,8 @@ PRODUCT_CATALOGUE = [
         required_poses=["A", "B"],
         optional_poses=[],
         pose_illustrations={
-            "A": "https://cdn.measora.io/poses/pant_front.png",
-            "B": "https://cdn.measora.io/poses/pant_side.png",
+            "A": "/assets/poses/pose_A.png",
+            "B": "/assets/poses/pose_B.png",
         },
     ),
     ProductResponse(
@@ -48,7 +48,7 @@ PRODUCT_CATALOGUE = [
         required_poses=["D"],
         optional_poses=[],
         pose_illustrations={
-            "D": "https://cdn.measora.io/poses/foot_topdown.png",
+            "D": "/assets/poses/pose_D.png",
         },
     ),
 ]

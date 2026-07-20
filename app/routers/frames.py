@@ -3,8 +3,9 @@ POST /v1/sessions/{session_id}/frames                    — upload a captured f
 POST /v1/sessions/{session_id}/frames/{frame_id}/validate — validate an uploaded frame
 REQ-100-07, REQ-100-08, REQ-100-04, REQ-100-05, REQ-100-06
 """
+import json
 import os
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Optional
 
 from fastapi import APIRouter, Depends, File, Form, UploadFile
@@ -59,7 +60,7 @@ async def upload_frame(
     # Save file to disk
     upload_dir = os.path.join(settings.UPLOAD_DIR, session_id)
     os.makedirs(upload_dir, exist_ok=True)
-    ts = datetime.utcnow().strftime("%Y%m%d%H%M%S%f")
+    ts = datetime.now(timezone.utc).strftime("%Y%m%d%H%M%S%f")
     ext = (image.filename or "frame.jpg").rsplit(".", 1)[-1].lower()
     filename = f"{pose}_{sub_view or 'na'}_{foot or 'na'}_{ts}.{ext}"
     file_path = os.path.join(upload_dir, filename)
@@ -220,8 +221,8 @@ def confirm_frame_points(
     if not frame:
         raise FrameNotFoundError(frame_id)
 
-    import json
     frame.landmarks_json = json.dumps(payload.landmarks)
     db.commit()
+
 
     return {"status": "success"}

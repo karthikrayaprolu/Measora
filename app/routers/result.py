@@ -3,7 +3,7 @@ GET /v1/sessions/{session_id}/result         — final output (Confirmed size)
 GET /v1/sessions/{session_id}/result/export  — shareable export link
 REQ-500-01, REQ-500-02, REQ-500-07
 """
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 from fastapi import APIRouter, Depends
 from fastapi.responses import JSONResponse
@@ -123,9 +123,9 @@ def export_result(
     )
 
     token = rec.share_token if rec else "no_recommendation"
-    expires_at = (datetime.utcnow() + timedelta(days=30)).isoformat() + "Z"
+    expires_at = (datetime.now(timezone.utc) + timedelta(days=30)).isoformat() + "Z"
 
     return {
-        "share_url": f"https://measora.io/result/{token}",
+        "share_url": f"{settings.FRONTEND_BASE_URL}/result/{token}",
         "expires_at": expires_at,
     }

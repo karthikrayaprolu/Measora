@@ -5,7 +5,7 @@ DELETE /v1/users/{user_id}/profile           — delete profile (GDPR)
 POST   /v1/users/{user_id}/profile/recommend — recommend from stored profile
 REQ-500-03 → REQ-500-06, REQ-500-04
 """
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import List
 
 from fastapi import APIRouter, Depends, HTTPException, status
@@ -25,7 +25,15 @@ from app.schemas.profile import (
 )
 from app.schemas.common import ConfidenceLevel
 from app.schemas.size import ConfidenceInfo, SizeRecommendationResponse
-from app.services.size_mapping_service import compute_size_recommendation
+from app.services.size_mapping_service import (
+    compute_size_recommendation,
+    _score_entry,
+    CONFIDENCE_HIGH,
+    CONFIDENCE_MED,
+    FIT_OFFSET,
+    FitPreference,
+)
+from app.db.models import SizeChartEntry
 
 router = APIRouter(prefix="/users", tags=["User Profile"])
 
@@ -112,7 +120,7 @@ def get_profile(
     if not profile:
         raise ProfileNotFoundError(user_id)
 
-    age_days = (datetime.utcnow() - profile.created_at).days
+    age_days = (datetime.now(timezone.utc) - profile.created_at).days
     measurements = [MeasurementEntry(**m) for m in profile.get_measurements()]
 
     return UserProfileResponse(
@@ -149,11 +157,11 @@ def update_profile(
         existing[m.iso_name] = m.model_dump()
 
     profile.set_measurements(list(existing.values()))
-    profile.updated_at = datetime.utcnow()
+    profile.updated_at = datetime.now(timezone.utc)
     db.commit()
     db.refresh(profile)
 
-    age_days = (datetime.utcnow() - profile.created_at).days
+    age_days = (datetime.now(timezone.utc) - profile.created_at).days
     measurements = [MeasurementEntry(**m) for m in profile.get_measurements()]
 
     return UserProfileResponse(
@@ -218,14 +226,6 @@ def recommend_from_profile(
     measurements = {m["iso_name"]: m["value_cm"] for m in measurements_list}
 
     # Use the size mapping algorithm directly (without a session)
-    from app.services.size_mapping_service import (
-        _score_entry,
-        CONFIDENCE_HIGH,
-        CONFIDENCE_MED,
-        FIT_OFFSET,
-        FitPreference,
-    )
-    from app.db.models import SizeChartEntry
 
     entries = (
         db.query(SizeChartEntry)
@@ -270,7 +270,7 @@ def recommend_from_profile(
             "low_confidence": level == ConfidenceLevel.low,
         },
         "source": "stored_profile",
-        "profile_age_days": (datetime.utcnow() - profile.created_at).days,
+        "profile_age_days": (datetime.now(timezone.utc) - profile.created_at).days,
     }
 
 

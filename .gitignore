@@ -83,8 +83,15 @@ $RECYCLE.BIN/
 # Logs
 *.log
 logs/
+# Explicit debug log created during development — must never be committed
+jwt_debug.log
+
+# Databases (local SQLite dev files — production uses PostgreSQL)
+*.db
+*.sqlite3
 
 # App specific
+uploads/
 uploaded_frames/
 temp/
 coverage/
