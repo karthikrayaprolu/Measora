@@ -35,7 +35,7 @@ def decode_token(token: str) -> Optional[str]:
                 token,
                 secret_bytes,
                 algorithms=[token_alg],
-                audience="authenticated",
+                options={"verify_aud": False},
             )
             logger.debug("JWT verified with base64-decoded key")
             return payload.get("sub")
@@ -48,7 +48,7 @@ def decode_token(token: str) -> Optional[str]:
                 token,
                 settings.SECRET_KEY,
                 algorithms=[token_alg],
-                audience="authenticated",
+                options={"verify_aud": False},
             )
             logger.debug("JWT verified with string key")
             return payload.get("sub")
