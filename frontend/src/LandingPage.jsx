@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowRight, Camera, CheckCircle2, ScanLine, Ruler } from 'lucide-react';
+import heroBg from './assets/hero-bg.jpg';
 
 /* ════════════════════════════════════════════════════════════════════
    Measora Landing Page — Phase 4 Hero Redesign (bug-fix pass)
@@ -67,7 +68,7 @@ export default function LandingPage() {
           minHeight: '100vh',
           display: 'flex',
           flexDirection: 'column',
-          backgroundImage: "url('/src/assets/hero-bg.jpg')",
+          backgroundImage: `url(${heroBg})`,
           backgroundSize: 'cover',
           backgroundPosition: 'center center',
           backgroundRepeat: 'no-repeat',
