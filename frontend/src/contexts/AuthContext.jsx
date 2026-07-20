@@ -9,11 +9,26 @@ export function AuthProvider({ children }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setUser(session?.user ?? null);
+    const initializeAuth = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      if (!session) {
+        // No account required — sign in anonymously to get a JWT for the backend
+        const { data: anonData, error } = await supabase.auth.signInAnonymously();
+        if (anonData?.session) {
+          setSession(anonData.session);
+          setUser(anonData.session.user);
+        } else if (error) {
+          console.error("Anonymous sign-in failed:", error);
+        }
+      } else {
+        setSession(session);
+        setUser(session.user);
+      }
       setLoading(false);
-    });
+    };
+
+    initializeAuth();
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setSession(session);
