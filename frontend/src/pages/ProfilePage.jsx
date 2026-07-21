@@ -1,11 +1,9 @@
 import { useState } from 'react';
-import { Moon, Sun, LogOut, User, Mail, ShieldCheck, ChevronRight } from 'lucide-react';
+import { LogOut, User, Mail, ShieldCheck, ChevronRight } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { useTheme } from '../components/theme-context';
 import { useAuth } from '../contexts/AuthContext';
 
 export default function ProfilePage() {
-  const { theme, setTheme } = useTheme();
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
   const [loggingOut, setLoggingOut] = useState(false);
@@ -123,22 +121,6 @@ export default function ProfilePage() {
             </span>
           </div>
         )}
-      </section>
-
-      {/* ── Appearance ───────────────────────────────────────── */}
-      <section className="card" style={{ padding: 20, marginBottom: 'var(--space-4)' }}>
-        <h2 className="section-title" style={{ marginBottom: 14 }}>Appearance</h2>
-        <div className="segmented" aria-label="Color theme">
-          <button aria-pressed={theme === 'light'} onClick={() => setTheme('light')}>
-            <Sun size={17} /> Light
-          </button>
-          <button aria-pressed={theme === 'system'} onClick={() => setTheme('system')}>
-            Auto
-          </button>
-          <button aria-pressed={theme === 'dark'} onClick={() => setTheme('dark')}>
-            <Moon size={17} /> Dark
-          </button>
-        </div>
       </section>
 
       {/* ── Sign Out ─────────────────────────────────────────── */}

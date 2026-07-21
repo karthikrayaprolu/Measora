@@ -111,80 +111,6 @@
   --focus: var(--color-focus);
 }
 
-/*
-  DARK THEME — deep charcoal suiting
-  Canvas:         #141210  (warm near-black, not blue-black)
-  Surface:        #1E1B18  (raised card surface, like dark cloth)
-  Primary Navy lightens to a dusty steel blue for dark contrast
-  Brass stays warm but brightens slightly for visibility
-*/
-[data-theme="dark"] {
-  color-scheme: dark;
-
-  --color-canvas: #141210;
-  --color-surface: #1E1B18;
-  --color-surface-raised: #262118;
-  --color-surface-muted: #2E2921;
-  --color-surface-inverse: #F4F1EC;
-
-  --color-ink: #EDE8E1;
-  --color-ink-muted: #A89F96;
-  --color-ink-faint: #6B6259;
-  --color-ink-inverse: #1C1917;
-
-  --color-border: #33302B;
-  --color-border-strong: #4A453D;
-
-  --color-primary-50: #1A1A14;
-  --color-primary-100: #252418;
-  --color-primary-500: #6A9ABE;
-  --color-primary-600: #88B4D0;
-  --color-primary-700: #AACFE2;
-
-  --color-brass: #D4973A;
-  --color-brass-light: #2E2318;
-  --color-brass-dark: #F0B95C;
-
-  --color-success: #4CAF7D;
-  --color-success-bg: #112B1E;
-  --color-warning: #D4973A;
-  --color-warning-bg: #2A1E0A;
-  --color-danger: #D4665F;
-  --color-danger-bg: #2A1010;
-  --color-info: #6A9ABE;
-  --color-info-bg: #141E28;
-
-  --color-focus: #D4973A;
-
-  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.28), 0 1px 4px rgba(0, 0, 0, 0.20);
-  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.36), 0 2px 4px rgba(0, 0, 0, 0.24);
-  --shadow-lg: 0 16px 40px rgba(0, 0, 0, 0.44), 0 4px 12px rgba(0, 0, 0, 0.30);
-  --shadow-card-hover: 0 8px 24px rgba(0, 0, 0, 0.40), 0 2px 6px rgba(0, 0, 0, 0.28);
-
-  /* Backward-compat aliases */
-  --primary-50: var(--color-primary-50);
-  --primary-100: var(--color-primary-100);
-  --primary-500: var(--color-primary-500);
-  --primary-600: var(--color-primary-600);
-  --primary-700: var(--color-primary-700);
-  --secondary-500: var(--color-brass);
-  --accent-500: var(--color-brass);
-  --success-500: var(--color-success);
-  --warning-500: var(--color-warning);
-  --danger-500: var(--color-danger);
-  --bg: var(--color-canvas);
-  --surface: var(--color-surface);
-  --surface-raised: var(--color-surface-raised);
-  --surface-muted: var(--color-surface-muted);
-  --surface-inverse: var(--color-surface-inverse);
-  --text: var(--color-ink);
-  --text-muted: var(--color-ink-muted);
-  --text-faint: var(--color-ink-faint);
-  --text-inverse: var(--color-ink-inverse);
-  --border: var(--color-border);
-  --border-strong: var(--color-border-strong);
-  --focus: var(--color-focus);
-}
 
 /* ── SPACING SCALE ─────────────────────────────────────────────────── */
 :root {
@@ -483,10 +409,6 @@ img {
   letter-spacing: 0.02em;
 }
 
-[data-theme="dark"] .ruler-badge {
-  background: color-mix(in srgb, var(--color-brass) 12%, transparent);
-  color: var(--color-brass);
-}
 
 /* ── LAYOUT PRIMITIVES ─────────────────────────────────────────────── */
 .sr-only {
@@ -1628,9 +1550,6 @@ img {
   flex-shrink: 0;
 }
 
-[data-theme="dark"] .category-card__icon {
-  background: color-mix(in srgb, var(--color-brass) 15%, transparent);
-}
 
 .category-card__name {
   font-family: var(--font-display);
@@ -1933,9 +1852,6 @@ img {
   flex-shrink: 0;
 }
 
-[data-theme="dark"] .consent-card__icon {
-  background: color-mix(in srgb, var(--color-primary-500) 18%, transparent);
-}
 
 .consent-list {
   list-style: none;
@@ -2642,10 +2558,6 @@ img {
   flex-shrink: 0;
 }
 
-[data-theme="dark"] .guide-tip__number {
-  background: color-mix(in srgb, var(--color-brass) 15%, transparent);
-}
-
 .guide-tip__title {
   font-size: var(--text-base);
   font-weight: 700;
@@ -2688,11 +2600,6 @@ img {
   background: var(--color-brass-light);
   color: var(--color-brass-dark);
   border-color: color-mix(in srgb, var(--color-brass) 30%, transparent);
-}
-
-[data-theme="dark"] .photo-pair__step--done {
-  background: color-mix(in srgb, var(--color-brass) 20%, transparent);
-  color: var(--color-brass);
 }
 
 .photo-pair__step--current {

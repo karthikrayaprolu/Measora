@@ -1,18 +1,14 @@
 import { useState, useRef, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { ScanLine, Sun, Moon, UserRound, LogOut, Settings } from 'lucide-react';
-import { useTheme } from './theme-context';
+import { ScanLine, UserRound, LogOut, Settings } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 
+
 export function Navbar({ variant = 'solid', inApp = false }) {
-  const { theme, setTheme } = useTheme();
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef(null);
-
-  const isDark = theme === 'dark' || (theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches);
-  const toggleTheme = () => setTheme(isDark ? 'light' : 'dark');
 
   const navClass = variant === 'transparent' ? 'navbar navbar--transparent' : 'navbar navbar--solid';
 
@@ -41,8 +37,8 @@ export function Navbar({ variant = 'solid', inApp = false }) {
   const avatarLetter = displayName
     ? displayName[0].toUpperCase()
     : email
-    ? email[0].toUpperCase()
-    : null;
+      ? email[0].toUpperCase()
+      : null;
 
   return (
     <nav className={navClass} aria-label="Primary navigation">
@@ -52,19 +48,10 @@ export function Navbar({ variant = 'solid', inApp = false }) {
       </Link>
 
       <div className="navbar-actions">
-        {/* Theme toggle */}
-        <button
-          className="icon-button"
-          onClick={toggleTheme}
-          aria-label={`Switch to ${isDark ? 'light' : 'dark'} theme`}
-        >
-          {isDark ? <Sun size={21} /> : <Moon size={21} />}
-        </button>
 
-        {/* Not logged in */}
         {!user && (
           <div className="navbar-auth">
-            <Link to="/login" className="lp-nav-btn lp-nav-btn--ghost">Sign in</Link>
+            {/* <Link to="/login" className="lp-nav-btn lp-nav-btn--ghost">Sign in</Link> */}
             <Link to="/login" className="lp-nav-btn lp-nav-btn--filled">Start free</Link>
           </div>
         )}

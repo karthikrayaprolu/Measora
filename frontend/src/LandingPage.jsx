@@ -1,61 +1,9 @@
-import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowRight, Camera, CheckCircle2, ScanLine, Ruler } from 'lucide-react';
 import heroBg from './assets/hero-bg.jpg';
-
-/* ════════════════════════════════════════════════════════════════════
-   Measora Landing Page — Phase 4 Hero Redesign (bug-fix pass)
-
-   Fixes in this pass (see landing.css for the actual rule changes):
-   1. Navbar: "Sign in" and "Start free" now share one base button class
-      (.lp-nav-btn) with modifiers, so height/padding/radius match exactly.
-   2. CTA buttons: unified padding formula via .button so "Take your
-      measurements" and "Start measuring" no longer size inconsistently.
-   3. Hero visual: measurement chips moved into a dedicated
-      .lp-hero__chips column so they can never overlap the panel edge.
-      On mobile they drop below the image as a simple legend row instead
-      of floating over it.
-   ════════════════════════════════════════════════════════════════════ */
-
-import { useAuth } from './contexts/AuthContext';
 import { Navbar } from './components/Navbar';
 
-function useAnimatedCounter(endValue, duration = 1500, decimals = 0) {
-  const [value, setValue] = useState(0);
-
-  useEffect(() => {
-    const prefs = window.matchMedia('(prefers-reduced-motion: reduce)');
-    if (prefs.matches) {
-      setValue(endValue);
-      return;
-    }
-
-    let startTime = null;
-    let animationFrame;
-
-    const animate = (time) => {
-      if (!startTime) startTime = time;
-      const progress = Math.min((time - startTime) / duration, 1);
-      const easeProgress = 1 - Math.pow(1 - progress, 4);
-      setValue(endValue * easeProgress);
-      if (progress < 1) {
-        animationFrame = requestAnimationFrame(animate);
-      }
-    };
-
-    animationFrame = requestAnimationFrame(animate);
-    return () => cancelAnimationFrame(animationFrame);
-  }, [endValue, duration]);
-
-  return value.toFixed(decimals);
-}
-
 export default function LandingPage() {
-  const { user } = useAuth();
-  const animatedPoints = useAnimatedCounter(13, 1500, 0);
-  const animatedAccuracy = useAnimatedCounter(1, 1500, 0);
-  const animatedPhotos = useAnimatedCounter(2, 1500, 0);
-
   return (
     <div className="lp">
 
@@ -80,7 +28,7 @@ export default function LandingPage() {
             position: 'absolute',
             inset: 0,
             backgroundColor: 'var(--color-canvas)',
-            opacity: 0.85,
+            opacity: 0.3,
             zIndex: 0
           }}
           aria-hidden="true"
@@ -144,22 +92,6 @@ export default function LandingPage() {
               </p>
             </div>
           </div>
-
-          {/* Stat row (anchored to bottom) */}
-          {/* <div className="lp-stats" style={{ width: '100%', maxWidth: '900px', justifyContent: 'space-between', padding: '0 var(--space-4)', marginTop: 'var(--space-8)' }}>
-            <div className="lp-stat" style={{ alignItems: 'center', gap: '0.25rem' }}>
-              <span className="lp-stat__value" style={{ fontSize: '3rem', color: '#1a1a1a' }}>{animatedPoints}</span>
-              <span className="lp-stat__label" style={{ textAlign: 'center', fontSize: 'var(--text-base)', color: '#2a2a2a' }}>Body points detected</span>
-            </div>
-            <div className="lp-stat" style={{ alignItems: 'center', gap: '0.25rem' }}>
-              <span className="lp-stat__value" style={{ fontSize: '3rem', color: '#1a1a1a' }}>±{animatedAccuracy}<span style={{ fontSize: '0.5em', fontWeight: 500 }}>cm</span></span>
-              <span className="lp-stat__label" style={{ textAlign: 'center', fontSize: 'var(--text-base)', color: '#2a2a2a' }}>Measurement accuracy</span>
-            </div>
-            <div className="lp-stat" style={{ alignItems: 'center', gap: '0.25rem' }}>
-              <span className="lp-stat__value" style={{ fontSize: '3rem', color: '#1a1a1a' }}>{animatedPhotos}</span>
-              <span className="lp-stat__label" style={{ textAlign: 'center', fontSize: 'var(--text-base)', color: '#2a2a2a' }}>Photos, that's it</span>
-            </div>
-          </div> */}
         </div>
       </section>
 

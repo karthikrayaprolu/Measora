@@ -1,13 +1,8 @@
-import { NavLink, Link } from 'react-router-dom';
-import { History, Moon, Ruler, ScanLine, Sun, UserRound } from 'lucide-react';
-import { useTheme } from './theme-context';
+import { NavLink } from 'react-router-dom';
+import { History, Ruler, UserRound } from 'lucide-react';
 import { Navbar } from './Navbar';
 
 export function AppShell({ children }) {
-  const { theme, setTheme } = useTheme();
-  const isDark = theme === 'dark' || (theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches);
-  const toggleTheme = () => setTheme(isDark ? 'light' : 'dark');
-
   return (
     <div className="app-page">
       <Navbar variant="solid" inApp={true} />

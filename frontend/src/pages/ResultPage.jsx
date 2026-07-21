@@ -120,8 +120,8 @@ export default function ResultPage() {
           </section>
         ) : (
           <Card style={{ display: 'grid', placeItems: 'center', padding: 32 }}>
-             <RefreshCw className="spin" size={24} style={{ color: 'var(--muted)', marginBottom: 12 }} />
-             <p className="muted" style={{ margin: 0 }}>Finding your perfect fit...</p>
+            <RefreshCw className="spin" size={24} style={{ color: 'var(--muted)', marginBottom: 12 }} />
+            <p className="muted" style={{ margin: 0 }}>Finding your perfect fit...</p>
           </Card>
         )}
 
@@ -155,14 +155,14 @@ export default function ResultPage() {
           <div className="modal-content" onClick={e => e.stopPropagation()} role="dialog" aria-modal="true" aria-labelledby="modal-title">
             <h3 id="modal-title" className="modal-title">Save measurements</h3>
             <p className="modal-body">Name this profile so you can easily identify it later.</p>
-            
-            <input 
+
+            <input
               ref={inputRef}
-              type="text" 
-              className="modal-input" 
-              placeholder='e.g. "John - June 2026"' 
-              value={saveName} 
-              onChange={e => setSaveName(e.target.value)} 
+              type="text"
+              className="modal-input"
+              placeholder='e.g. "John - June 2026"'
+              value={saveName}
+              onChange={e => setSaveName(e.target.value)}
               onKeyDown={e => {
                 if (e.key === 'Enter' && saveName.trim()) {
                   handleSave();
@@ -171,7 +171,7 @@ export default function ResultPage() {
                 }
               }}
             />
-            
+
             <div className="modal-actions">
               <Button variant="text" onClick={() => setShowSaveModal(false)}>Cancel</Button>
               <Button variant="primary" disabled={!saveName.trim() || saveMeasurement.isPending} isLoading={saveMeasurement.isPending} onClick={handleSave}>Save profile</Button>
