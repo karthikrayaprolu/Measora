@@ -117,13 +117,33 @@ export default function CaptureFlow() {
     if (isProcessing) navigate(`/app/session/${sessionId}/result`, { replace: true });
   }, [isProcessing, navigate, sessionId]);
 
-  // Cleanup object URLs on unmount
+  // Track object URLs in a ref so we can revoke them on unmount without
+  // re-running the effect every time a new URL is assigned (which would
+  // incorrectly revoke the newly-created URL immediately).
+  const objectUrlsRef = useRef({ A: null, B: null });
+
+  // Keep the ref in sync whenever a frame URL is stored
+  useEffect(() => {
+    const prev = objectUrlsRef.current.A;
+    const next = frames.A?.url ?? null;
+    if (prev && prev !== next) URL.revokeObjectURL(prev); // revoke old A url when replaced
+    objectUrlsRef.current.A = next;
+  }, [frames.A?.url]);
+
+  useEffect(() => {
+    const prev = objectUrlsRef.current.B;
+    const next = frames.B?.url ?? null;
+    if (prev && prev !== next) URL.revokeObjectURL(prev); // revoke old B url when replaced
+    objectUrlsRef.current.B = next;
+  }, [frames.B?.url]);
+
+  // Revoke all remaining object URLs on unmount only
   useEffect(() => {
     return () => {
-      if (frames.A?.url) URL.revokeObjectURL(frames.A.url);
-      if (frames.B?.url) URL.revokeObjectURL(frames.B.url);
+      if (objectUrlsRef.current.A) URL.revokeObjectURL(objectUrlsRef.current.A);
+      if (objectUrlsRef.current.B) URL.revokeObjectURL(objectUrlsRef.current.B);
     };
-  }, [frames.A?.url, frames.B?.url]);
+  }, []); // empty deps → runs cleanup only on component unmount
 
   const goTo = (next, dir = 'forward') => {
     setDirection(dir);
@@ -383,7 +403,12 @@ export default function CaptureFlow() {
             onUndo={undoPoint}
             canUndo={undo.length > 0}
             onRetake={(pose) => {
-              if (frames[pose]?.url) URL.revokeObjectURL(frames[pose].url);
+              // Clear the ref first so the url-tracking effect doesn't double-revoke
+              const urlToRevoke = frames[pose]?.url;
+              if (urlToRevoke) {
+                objectUrlsRef.current[pose] = null;
+                URL.revokeObjectURL(urlToRevoke);
+              }
               setFrames(curr => ({ ...curr, [pose]: null }));
               setSelectedPoint(null);
               // Remove any confirmed keys for this pose

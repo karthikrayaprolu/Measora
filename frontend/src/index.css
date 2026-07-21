@@ -4120,3 +4120,25 @@ img {
   color: #ef4444;
   background: rgba(239, 68, 68, 0.1);
 }
+
+/* ── Utility animations ───────────────────────────────────────────── */
+@keyframes fadeSlideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-6px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+.spin {
+  animation: spin 0.75s linear infinite;
+  display: inline-block;
+}

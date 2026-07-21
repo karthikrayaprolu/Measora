@@ -1,13 +1,26 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useAuth } from '../contexts/AuthContext';
 import client from './client';
 
+/**
+ * Returns true once the Supabase session is ready (has an access token).
+ * Used to gate queries so they don't fire before the JWT is available,
+ * which would cause spurious 401s on every page load.
+ */
+export const useIsAuthReady = () => {
+  const { session, loading } = useAuth();
+  return !loading && !!session?.access_token;
+};
+
 export const useProducts = () => {
+  const authReady = useIsAuthReady();
   return useQuery({
     queryKey: ['products'],
     queryFn: async () => {
       const { data } = await client.get('/products');
       return data;
     },
+    enabled: authReady,
   });
 };
 
@@ -21,13 +34,14 @@ export const useCreateSession = () => {
 };
 
 export const useSession = (sessionId) => {
+  const authReady = useIsAuthReady();
   return useQuery({
     queryKey: ['session', sessionId],
     queryFn: async () => {
       const { data } = await client.get(`/sessions/${sessionId}`);
       return data;
     },
-    enabled: !!sessionId,
+    enabled: !!sessionId && authReady,
     refetchInterval: (query) => {
       // Poll if status indicates processing
       const status = query?.state?.data?.status;
@@ -97,13 +111,14 @@ export const useFastEstimate = () => {
 };
 
 export const useGetFastEstimate = (sessionId, isReady) => {
+  const authReady = useIsAuthReady();
   return useQuery({
     queryKey: ['fast-estimate', sessionId],
     queryFn: async () => {
       const { data } = await client.get(`/sessions/${sessionId}/fast-estimate`);
       return data;
     },
-    enabled: !!sessionId && isReady,
+    enabled: !!sessionId && isReady && authReady,
   });
 };
 
@@ -121,13 +136,14 @@ export const useAccurateEstimate = () => {
 };
 
 export const useBrands = (productType) => {
+  const authReady = useIsAuthReady();
   return useQuery({
     queryKey: ['brands', productType],
     queryFn: async () => {
       const { data } = await client.get(`/brands`, { params: { product_type: productType } });
       return data;
     },
-    enabled: !!productType,
+    enabled: !!productType && authReady,
   });
 };
 
@@ -141,13 +157,14 @@ export const useSizeRecommendation = () => {
 };
 
 export const useMeasurements = (userId) => {
+  const authReady = useIsAuthReady();
   return useQuery({
     queryKey: ['measurements', userId],
     queryFn: async () => {
       const { data } = await client.get(`/users/${userId}/profiles`);
       return data;
     },
-    enabled: !!userId,
+    enabled: !!userId && authReady,
   });
 };
 
@@ -177,13 +194,14 @@ export const useDeleteMeasurement = () => {
 };
 
 export const useResult = (sessionId) => {
+  const authReady = useIsAuthReady();
   return useQuery({
     queryKey: ['result', sessionId],
     queryFn: async () => {
       const { data } = await client.get(`/sessions/${sessionId}/result`);
       return data;
     },
-    enabled: !!sessionId,
+    enabled: !!sessionId && authReady,
     retry: (count, error) => error?.response?.status === 404 ? count < 8 : count < 2,
     retryDelay: attempt => Math.min(1000 * 2 ** attempt, 5000),
   });

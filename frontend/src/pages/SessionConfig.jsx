@@ -2,6 +2,7 @@ import { useState, useRef, useEffect, useCallback } from 'react';
 import { ArrowLeft, ArrowRight, ShieldCheck, AlertCircle } from 'lucide-react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useCreateSession } from '../api/hooks';
+import { useAuth } from '../contexts/AuthContext';
 import { Banner } from '../components/ui/Banner';
 import { Button } from '../components/ui/Button';
 import { StepIndicator } from '../components/ui/StepIndicator';
@@ -99,7 +100,8 @@ function ftInToCm(ft, inches) {
 export default function SessionConfig() {
   const { productId } = useParams();
   const navigate = useNavigate();
-  const { mutate: createSession, isPending, isError } = useCreateSession();
+  const { mutate: createSession, isPending, isError, error: sessionError } = useCreateSession();
+  const { authError, session } = useAuth();
 
   // Flow state
   const [step, setStep] = useState(1); // 1=height, 2=fit, 3=consent
@@ -427,11 +429,24 @@ export default function SessionConfig() {
               </label>
             </div>
 
+            {/* Auth error — shown if Supabase anonymous auth is disabled */}
+            {authError && (
+              <Banner
+                type="error"
+                title="Authentication error"
+                message={authError}
+              />
+            )}
+
             {isError && (
               <Banner
                 type="error"
                 title="Couldn't start fitting"
-                message="Check your connection and try again."
+                message={
+                  sessionError?.response?.status === 401
+                    ? 'Authentication failed. Please refresh the page and try again.'
+                    : 'Check your connection and try again.'
+                }
               />
             )}
 

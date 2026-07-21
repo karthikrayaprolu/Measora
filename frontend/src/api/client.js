@@ -17,9 +17,17 @@ client.interceptors.request.use(async (config) => {
     const { data: { session } } = await supabase.auth.getSession();
     if (session?.access_token) {
       config.headers.Authorization = `Bearer ${session.access_token}`;
+    } else {
+      // No token: this will cause a 401 on protected routes.
+      // Root cause: Supabase anonymous sign-in likely failed or is disabled.
+      console.warn(
+        '[API] No Supabase session found — request will be sent without Authorization header.',
+        'Check: Supabase Dashboard → Authentication → Providers → Anonymous is enabled.',
+        'Request:', config.method?.toUpperCase(), config.url
+      );
     }
   } catch (error) {
-    console.error('Failed to get Supabase token', error);
+    console.error('[API] Failed to get Supabase session:', error);
   }
   return config;
 });
