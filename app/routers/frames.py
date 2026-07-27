@@ -8,7 +8,7 @@ import os
 from datetime import datetime, timezone
 from typing import Optional
 
-from fastapi import APIRouter, Depends, File, Form, UploadFile
+from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile, status
 from sqlalchemy.orm import Session
 
 from app.core.config import settings
@@ -21,7 +21,7 @@ from app.core.security import get_current_user
 from app.db.database import get_db
 from app.db import models
 from app.schemas.frame import FrameUploadResponse, FrameValidateResponse, ValidationResult, FrameConfirmPointsRequest
-from app.services.pose_service import validate_frame, run_keypoint_estimation
+from app.services.pose_service import contains_human, validate_frame, run_keypoint_estimation
 
 router = APIRouter(prefix="/sessions", tags=["Frames"])
 
@@ -45,7 +45,7 @@ async def upload_frame(
 ):
     """
     Upload a captured still frame for the specified pose.
-    Automatically accepted on upload (validation can be run separately).
+    Stored as pending until server-side pose validation accepts it.
     """
     session = db.query(models.Session).filter(models.Session.id == session_id).first()
     if not session:
@@ -56,6 +56,15 @@ async def upload_frame(
     max_bytes = settings.MAX_UPLOAD_SIZE_MB * 1024 * 1024
     if len(content) > max_bytes:
         raise FileTooLargeError(settings.MAX_UPLOAD_SIZE_MB)
+
+    # Reject non-human photos before they are persisted. This is intentionally
+    # shape-neutral: it only establishes that the image contains a person;
+    # pose and full-body quality are checked by the validation endpoint.
+    if not contains_human(content):
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail="Please upload a clear photo of one person. Images without a detectable person cannot be used for measurements.",
+        )
 
     # Save file to disk
     upload_dir = os.path.join(settings.UPLOAD_DIR, session_id)
@@ -75,7 +84,10 @@ async def upload_frame(
         sub_view=sub_view,
         foot=foot,
         file_path=file_path,
-        accepted=True,
+        # A frame cannot contribute to measurements until its pose and
+        # landmarks are validated. This prevents unvalidated/rejected retakes
+        # from entering a processing job.
+        accepted=False,
     )
     db.add(frame)
 
@@ -94,7 +106,7 @@ async def upload_frame(
     return FrameUploadResponse(
         frame_id=frame.id,
         pose=frame.pose,
-        accepted=True,
+        accepted=False,
         poses_remaining=remaining,
         all_poses_captured=len(remaining) == 0,
     )

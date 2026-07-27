@@ -41,8 +41,16 @@ def run_fast_estimate(session_id: str, db: DBSession) -> None:
         if not session or not frame_a or not frame_b:
             raise ValueError("Session or required frames (A and B) missing.")
             
-        # Run real computer vision to extract measurements
-        measurements = extract_measurements(session.height_cm, frame_a.landmarks_json, frame_b.landmarks_json)
+        # Run real computer vision to extract measurements.
+        # A6: pass file paths so the function can read actual image dimensions
+        # for pixel-space scale factor computation instead of normalized-unit math.
+        measurements = extract_measurements(
+            session.height_cm,
+            frame_a.landmarks_json,
+            frame_b.landmarks_json,
+            front_img_path=frame_a.file_path or "",
+            side_img_path=frame_b.file_path or "",
+        )
         meas_dict = {m[0]: m[1] for m in measurements}
         
         chest_cm = meas_dict.get("chest_circumference", 100.0)

@@ -2,6 +2,7 @@ import math
 import numpy as np
 import cv2
 import os
+import threading
 from typing import Dict, List, Tuple
 from app.schemas.frame import ValidationResult
 
@@ -14,12 +15,18 @@ try:
     base_options = python.BaseOptions(model_asset_path=model_path)
     options = vision.PoseLandmarkerOptions(
         base_options=base_options,
-        output_segmentation_masks=True,
+        # Avoid unstable segmentation-mask frames in the Windows runtime.
+        output_segmentation_masks=False,
     )
     pose_estimator = vision.PoseLandmarker.create_from_options(options)
 except (ImportError, Exception) as e:
     print(f"Warning: MediaPipe init failed: {e}")
     mp = None
+
+# MediaPipe task runners are not safe to share across simultaneous request and
+# background-worker threads. Concurrent `detect` calls can abort the Python
+# process at native level instead of raising a catchable exception.
+_pose_detector_lock = threading.Lock()
 
 # Mapping MediaPipe landmark indices to COCO format
 MP_TO_COCO = {
@@ -43,8 +50,35 @@ MP_TO_COCO = {
 }
 
 MIN_LANDMARK_CONFIDENCE = 0.65
-MIN_SHOULDER_HEIGHT_RATIO = 0.18
-MAX_SHOULDER_HEIGHT_RATIO = 0.32
+def contains_human(image_bytes: bytes) -> bool:
+    """Return True only when MediaPipe detects a human pose in the image.
+
+    This deliberately does not apply body-shape heuristics: a valid person can
+    be slim, large, short, tall, or have any other natural body proportions.
+    Pose/framing requirements are enforced separately by ``validate_frame``.
+    """
+    if mp is None:
+        # Fail closed: accepting arbitrary images when the detector is not
+        # available defeats the image-safety constraint.
+        return False
+
+    nparr = np.frombuffer(image_bytes, np.uint8)
+    img = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
+    if img is None:
+        return False
+
+    img_rgb = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+    results = detect_pose(img_rgb)
+    return bool(results.pose_landmarks)
+
+
+def detect_pose(image_rgb: np.ndarray):
+    """Run MediaPipe pose detection with exclusive access to the task runner."""
+    if mp is None:
+        return None
+    mp_image = mp.Image(image_format=mp.ImageFormat.SRGB, data=image_rgb)
+    with _pose_detector_lock:
+        return pose_estimator.detect(mp_image)
 
 def _calculate_angle(a, b, c):
     """Calculate angle between three points in 2D."""
@@ -78,11 +112,10 @@ def validate_frame(
         return res, ["Lighting too low or poor contrast — move to a brighter area"], 0.0
 
     if mp is None:
-        return ValidationResult(pose_match_confidence=1.0, full_body_visible=True, lighting_ok=True, framing_ok=True, camera_angle_ok=True), [], 1.0
+        return ValidationResult(reason="PERSON_DETECTION_UNAVAILABLE"), ["Person detection is temporarily unavailable. Please try again shortly."], 0.0
 
     img_rgb = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-    mp_image = mp.Image(image_format=mp.ImageFormat.SRGB, data=img_rgb)
-    results = pose_estimator.detect(mp_image)
+    results = detect_pose(img_rgb)
 
     if not results.pose_landmarks:
         return ValidationResult(reason="NO_PERSON"), ["No person detected in frame"], 0.0
@@ -144,16 +177,6 @@ def validate_frame(
             res = ValidationResult(lighting_ok=True, full_body_visible=True, framing_ok=True, camera_angle_ok=True, reason="ARMS_TOO_CLOSE")
             return res, ["Move your arms slightly away from your torso so we can see your body outline clearly."], 0.0
 
-    # Calibration cross-check (Shoulder-to-Height ratio)
-    # We only do this for the Front pose where shoulders are clearly visible
-    if pose == "A":
-        l_shoulder, r_shoulder = landmarks[11], landmarks[12]
-        shoulder_width_px = abs(r_shoulder.x - l_shoulder.x)
-        ratio = shoulder_width_px / person_height_ratio
-        if not (MIN_SHOULDER_HEIGHT_RATIO <= ratio <= MAX_SHOULDER_HEIGHT_RATIO):
-            res = ValidationResult(lighting_ok=True, full_body_visible=True, framing_ok=True, camera_angle_ok=True, reason="PROPORTIONS_UNUSUAL")
-            return res, ["Subject proportions look unusual. Ensure the camera is level (not tilted up or down) and try again."], 0.0
-
     # 3. Check Pose Match
     pose_match_confidence = 0.0
     if pose == "A":
@@ -212,8 +235,7 @@ def run_keypoint_estimation(image_bytes: bytes, pose: str = "A") -> List[Dict]:
         return []
 
     img_rgb = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-    mp_image = mp.Image(image_format=mp.ImageFormat.SRGB, data=img_rgb)
-    results = pose_estimator.detect(mp_image)
+    results = detect_pose(img_rgb)
 
     keypoints = []
     if results.pose_landmarks:

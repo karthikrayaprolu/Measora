@@ -12,7 +12,7 @@ export default function ResultPage() {
   const { sessionId } = useParams();
   const navigate = useNavigate();
   const { data: session } = useSession(sessionId);
-  const { data: result, isLoading, isError, refetch, isFetching } = useResult(sessionId);
+  const { data: result, isLoading, isError, refetch, isFetching } = useResult(sessionId, session?.status);
   const productType = session?.product_type || 'shirt';
   const { data: brandsData, isLoading: brandsLoading } = useBrands(productType);
   const recommendationMutation = useSizeRecommendation();
@@ -31,7 +31,8 @@ export default function ResultPage() {
     }
   }, [showSaveModal]);
 
-  const processing = ['queued', 'processing', 'fast_processing', 'accurate_processing'].includes(session?.status);
+  const processing = ['queued', 'processing', 'fast_processing', 'accurate_processing'].includes(session?.status)
+    || (!isError && !isLoading && !result?.measurements?.length && session?.status !== 'failed');
 
   // Auto-select the first brand once the brands list loads.
   useEffect(() => {
@@ -82,6 +83,19 @@ export default function ResultPage() {
           <h1 className="section-title">Results aren’t ready yet</h1>
           <p className="muted">Processing may still be finishing. Try again in a moment.</p>
           <Button onClick={() => refetch()} isLoading={isFetching}><RefreshCw size={18} />Check again</Button>
+        </div>
+      </main></div>
+    );
+  }
+
+  if (session?.status === 'failed') {
+    return (
+      <div className="flow-page"><main className="flow-content">
+        <div className="empty-state card">
+          <span className="empty-state__icon"><AlertTriangle /></span>
+          <h1 className="section-title">We couldn’t calculate your measurements</h1>
+          <p className="muted">Please take new front and side photos with your full body clearly visible.</p>
+          <Button onClick={() => navigate(`/app/session/${sessionId}/capture`)}>Try again</Button>
         </div>
       </main></div>
     );

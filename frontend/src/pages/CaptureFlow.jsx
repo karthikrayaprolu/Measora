@@ -40,7 +40,6 @@ import { useNavigate, useParams } from 'react-router-dom';
 import {
   useAccurateEstimate,
   useConfirmPoints,
-  useFastEstimate,
   useSession,
   useUploadFrame,
   useValidateFrame,
@@ -100,7 +99,6 @@ export default function CaptureFlow() {
   const upload = useUploadFrame();
   const validate = useValidateFrame();
   const confirm = useConfirmPoints();
-  const fast = useFastEstimate();
   const accurate = useAccurateEstimate();
 
   const [step, setStep] = useState(2);
@@ -112,7 +110,7 @@ export default function CaptureFlow() {
   const [confirmedCriticalPoints, setConfirmedCriticalPoints] = useState(new Set());
 
   // Auto-navigate once processing
-  const isProcessing = ['fast_processing', 'fast_ready', 'accurate_processing', 'complete'].includes(session?.status);
+  const isProcessing = ['accurate_processing', 'complete'].includes(session?.status);
   useEffect(() => {
     if (isProcessing) navigate(`/app/session/${sessionId}/result`, { replace: true });
   }, [isProcessing, navigate, sessionId]);
@@ -210,9 +208,11 @@ export default function CaptureFlow() {
           },
         });
       },
-      onError: () => {
+      onError: (error) => {
         URL.revokeObjectURL(url);
-        setRejectionError({ message: 'Upload failed. Check your connection and try again.' });
+        setRejectionError({
+          message: error?.response?.data?.detail || 'Upload failed. Check your connection and try again.',
+        });
       },
     });
   };
@@ -310,7 +310,7 @@ export default function CaptureFlow() {
   const allCriticalConfirmed = frames.A && frames.B && unconfirmedCriticalPoints.length === 0;
 
   const [submitError, setSubmitError] = useState('');
-  const calculating = confirm.isPending || fast.isPending || accurate.isPending;
+  const calculating = confirm.isPending || accurate.isPending;
 
   const submit = () => {
     if (!frames.A || !frames.B) return;
@@ -319,12 +319,8 @@ export default function CaptureFlow() {
       onSuccess: () =>
         confirm.mutate({ sessionId, frameId: frames.B.id, landmarks: frames.B.landmarks }, {
           onSuccess: () =>
-            fast.mutate(sessionId, {
-              onSuccess: () =>
-                accurate.mutate(sessionId, {
-                  onSuccess: () => navigate(`/app/session/${sessionId}/result`),
-                  onError: () => navigate(`/app/session/${sessionId}/result`),
-                }),
+            accurate.mutate(sessionId, {
+              onSuccess: () => navigate(`/app/session/${sessionId}/result`),
               onError: () => setSubmitError('Measurement processing failed. Please try again.'),
             }),
           onError: () => setSubmitError('Side photo confirmation failed. Please try again.'),

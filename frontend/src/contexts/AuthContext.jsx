@@ -8,48 +8,80 @@ const AuthContext = createContext();
 const SIGNED_OUT_KEY = 'measora_signed_out';
 
 export function AuthProvider({ children }) {
-  const [session, setSession] = useState(null);
-  const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const [session, setSession]     = useState(null);
+  const [user, setUser]           = useState(null);
+  const [loading, setLoading]     = useState(true);
   const [authError, setAuthError] = useState(null);
-  const initializedRef = useRef(false);
+
+  // Guards that survive Strict Mode's double-invocation of effects:
+  // - initializedRef:  ensures initializeAuth() runs exactly once per lifetime.
+  // - subscriptionRef: holds the single active Supabase listener so StrictMode's
+  //   second effect run does NOT attach a second subscription (which would cause
+  //   Supabase to replay SIGNED_IN a second time, producing duplicate log lines).
+  const initializedRef  = useRef(false);
+  const subscriptionRef = useRef(null);
 
   useEffect(() => {
-    // ── 1. Subscribe ALWAYS — must happen before initializeAuth so we
-    //    never miss a SIGNED_IN / SIGNED_OUT event.
-    //    React Strict Mode runs effects twice: the guard below prevents
-    //    initializeAuth from running twice, but the subscription is
-    //    recreated on every effect run so it is always active.
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, newSession) => {
-      console.log('[Auth] Auth state changed. Event:', _event, '| User:', newSession?.user?.id ?? 'null');
+    // ── 1. Create the auth state listener exactly once. ───────────────────
+    if (!subscriptionRef.current) {
+      const { data: { subscription } } = supabase.auth.onAuthStateChange(
+        (_event, newSession) => {
+          // Gate verbose logging to development builds only.
+          if (import.meta.env.DEV) {
+            console.log(
+              '[Auth] Auth state changed. Event:', _event,
+              '| User:', newSession?.user?.id ?? 'null',
+            );
+          }
 
-      // A real (non-anonymous) sign-in clears the explicit-sign-out flag so
-      // that anonymous sessions can be created again on future fresh visits.
-      if (_event === 'SIGNED_IN' && newSession?.user && !newSession.user.is_anonymous) {
-        sessionStorage.removeItem(SIGNED_OUT_KEY);
-      }
+          // A real (non-anonymous) SIGNED_IN clears the explicit-sign-out flag
+          // so anonymous sessions can be created again on future fresh visits.
+          if (_event === 'SIGNED_IN' && newSession?.user && !newSession.user.is_anonymous) {
+            sessionStorage.removeItem(SIGNED_OUT_KEY);
+          }
 
-      setSession(newSession);
-      setUser(newSession?.user ?? null);
-    });
+          setSession(newSession);
+          setUser(newSession?.user ?? null);
 
-    // ── 2. Run initializeAuth exactly once per component lifetime.
+          // Safety net: if onAuthStateChange fires before getSession returns,
+          // unblock the loading gate so the UI does not hang indefinitely.
+          setLoading(false);
+        },
+      );
+
+      subscriptionRef.current = subscription;
+    }
+
+    // ── 2. Run initializeAuth exactly once per component lifetime. ────────
     if (!initializedRef.current) {
       initializedRef.current = true;
 
       const initializeAuth = async () => {
         try {
-          const { data: { session: existingSession }, error: sessionError } = await supabase.auth.getSession();
+          const {
+            data: { session: existingSession },
+            error: sessionError,
+          } = await supabase.auth.getSession();
 
           if (sessionError) {
             console.error('[Auth] getSession error:', sessionError);
           }
 
           if (existingSession) {
-            console.log('[Auth] Restored existing session. User:', existingSession.user?.id);
+            // Refresh on app startup. This is especially important after a
+            // long inactive production visit, where getSession can restore an
+            // expired JWT before the automatic refresh event is delivered.
+            const { data: refreshed, error: refreshError } = await supabase.auth.refreshSession();
+            const activeSession = refreshed?.session || existingSession;
+            if (refreshError && !activeSession?.access_token) {
+              throw refreshError;
+            }
+            if (import.meta.env.DEV) {
+              console.log('[Auth] Restored existing session. User:', activeSession.user?.id);
+            }
             sessionStorage.removeItem(SIGNED_OUT_KEY);
-            setSession(existingSession);
-            setUser(existingSession.user);
+            setSession(activeSession);
+            setUser(activeSession.user);
             setAuthError(null);
             setLoading(false);
             return;
@@ -57,13 +89,17 @@ export function AuthProvider({ children }) {
 
           // User explicitly signed out — skip anonymous sign-in.
           if (sessionStorage.getItem(SIGNED_OUT_KEY)) {
-            console.log('[Auth] User explicitly signed out — skipping anonymous sign-in.');
+            if (import.meta.env.DEV) {
+              console.log('[Auth] User explicitly signed out — skipping anonymous sign-in.');
+            }
             setLoading(false);
             return;
           }
 
           // No session at all — attempt anonymous sign-in.
-          console.log('[Auth] No session found, attempting anonymous sign-in...');
+          if (import.meta.env.DEV) {
+            console.log('[Auth] No session found, attempting anonymous sign-in...');
+          }
           const { data: anonData, error: anonError } = await supabase.auth.signInAnonymously();
 
           if (anonError) {
@@ -71,7 +107,7 @@ export function AuthProvider({ children }) {
             if (anonError.message?.includes('Anonymous sign-ins are disabled')) {
               setAuthError(
                 'Anonymous sign-ins are disabled in Supabase. ' +
-                'Enable it in: Supabase Dashboard → Authentication → Providers → Anonymous.'
+                'Enable it in: Supabase Dashboard → Authentication → Providers → Anonymous.',
               );
             } else {
               setAuthError(`Sign-in failed: ${anonError.message}`);
@@ -81,7 +117,9 @@ export function AuthProvider({ children }) {
           }
 
           if (anonData?.session) {
-            console.log('[Auth] Anonymous sign-in successful. User:', anonData.session.user?.id);
+            if (import.meta.env.DEV) {
+              console.log('[Auth] Anonymous sign-in successful. User:', anonData.session.user?.id);
+            }
             setSession(anonData.session);
             setUser(anonData.session.user);
             setAuthError(null);
@@ -100,9 +138,16 @@ export function AuthProvider({ children }) {
       initializeAuth();
     }
 
-    // Clean up subscription on every effect cleanup (including Strict Mode's
-    // intermediate unmount). A fresh subscription is created on the next run.
-    return () => subscription.unsubscribe();
+    // ── Cleanup ───────────────────────────────────────────────────────────
+    // On a true component unmount, unsubscribe and clear the ref.
+    // On Strict Mode's probe unmount → re-mount, the guard above prevents
+    // re-attaching a second subscription on the next effect run.
+    return () => {
+      if (subscriptionRef.current) {
+        subscriptionRef.current.unsubscribe();
+        subscriptionRef.current = null;
+      }
+    };
   }, []);
 
   const handleSignOut = async () => {

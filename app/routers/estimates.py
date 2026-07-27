@@ -9,6 +9,8 @@ import os
 import shutil
 import threading
 
+from app.core.config import settings
+
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
@@ -41,18 +43,17 @@ def _bg_fast(session_id: str):
 
 
 def _bg_accurate(session_id: str):
+    """
+    Background thread wrapper for the accurate estimate job.
+    File deletion is handled inside run_accurate_estimate itself (Q1 fix) —
+    do NOT add a second shutil.rmtree here, which would race against the
+    first deletion and obscure errors.
+    """
     db = SessionLocal()
     try:
         run_accurate_estimate(session_id, db)
     finally:
         db.close()
-        # Delete uploaded images once processing is complete
-        upload_dir = os.path.join(settings.UPLOAD_DIR, session_id)
-        if os.path.exists(upload_dir):
-            try:
-                shutil.rmtree(upload_dir)
-            except Exception:
-                pass
 
 
 # ─────────────────────────── FAST TIER ────────────────────────────────────────
@@ -86,6 +87,12 @@ def trigger_fast_estimate(
             job_id=existing.id,
             status=JobStatus.complete,
             estimated_seconds=0,
+        )
+    if existing and existing.status in ("queued", "processing"):
+        return JobAcceptedResponse(
+            job_id=existing.id,
+            status=JobStatus(existing.status),
+            estimated_seconds=2,
         )
 
     if existing is None:
@@ -178,6 +185,12 @@ def trigger_accurate_estimate(
             status=JobStatus.complete,
             estimated_seconds=0,
         )
+    if existing and existing.status in ("queued", "processing"):
+        return JobAcceptedResponse(
+            job_id=existing.id,
+            status=JobStatus(existing.status),
+            estimated_seconds=45,
+        )
 
     if existing is None:
         job = models.Job(
@@ -191,6 +204,11 @@ def trigger_accurate_estimate(
         db.refresh(job)
     else:
         job = existing
+
+    # Set this synchronously so the result route never mistakes the brief
+    # thread-start window for a completed scan with no measurements.
+    session.status = "accurate_processing"
+    db.commit()
 
     t = threading.Thread(target=_bg_accurate, args=(session_id,), daemon=True)
     t.start()
@@ -238,3 +256,46 @@ def get_accurate_estimate(
         mesh_fit_residual=result.get("mesh_fit_residual"),
         processing_time_ms=result.get("processing_time_ms"),
     )
+
+
+# ─────────────────────────── DEBUG ENDPOINT (A8) ──────────────────────────
+
+@router.get("/{session_id}/accurate-estimate/debug")
+def get_accurate_estimate_debug(
+    session_id: str,
+    user_id: str = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """
+    Internal debug endpoint — gated behind settings.DEBUG_MEASUREMENTS.
+    Returns per-frame pixel heights, scale factors, and raw pre-clip widths
+    so that A1–A5 fixes can be verified without modifying application logic.
+
+    DO NOT expose this endpoint in production (keep DEBUG_MEASUREMENTS=False).
+    """
+    if not settings.DEBUG_MEASUREMENTS:
+        raise HTTPException(
+            status_code=403,
+            detail="Debug measurements endpoint is not enabled on this server.",
+        )
+
+    session = db.query(models.Session).filter(models.Session.id == session_id).first()
+    if not session:
+        raise SessionNotFoundError(session_id)
+
+    job = next((j for j in session.jobs if j.job_type == "accurate_estimate"), None)
+
+    if job is None:
+        return {"status": "no_job", "debug": None}
+    if job.status in ("queued", "processing"):
+        return {"status": job.status, "debug": None}
+    if job.status == "failed":
+        return {"status": "failed", "debug": job.get_result()}
+
+    result = job.get_result()
+    return {
+        "status": "complete",
+        "debug": result.get("_debug"),
+        "raw_dimensions": result.get("raw_dimensions"),
+        "scale_mismatch": session.has_scale_mismatch,
+    }

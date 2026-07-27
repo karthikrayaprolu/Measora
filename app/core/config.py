@@ -25,8 +25,9 @@ class Settings(BaseSettings):
     # Base URL of the deployed frontend (used for shareable result links)
     FRONTEND_BASE_URL: str = "https://measora.io"
 
-    SCALE_MISMATCH_THRESHOLD: float = 0.03
+    SCALE_MISMATCH_THRESHOLD: float = 0.05          # Warn when front/side scale factors differ > 5%
     SCALE_MISMATCH_PENALTY_MULTIPLIER: float = 1.5
+    DEBUG_MEASUREMENTS: bool = False                 # Enable internal debug endpoint (A8); never True in prod
 
     SIZE_MATCH_WEIGHTS: dict = {
         "shirt": {"chest": 0.5, "shoulder": 0.3, "waist": 0.2},

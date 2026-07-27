@@ -11,6 +11,22 @@ const client = axios.create({
   },
 });
 
+// A restored browser session can contain an access token that has expired while
+// the app was closed. Refresh it before the first protected request instead of
+// making the user sign in again.
+let refreshPromise = null;
+const refreshAccessToken = async () => {
+  if (!refreshPromise) {
+    refreshPromise = supabase.auth.refreshSession()
+      .then(({ data, error }) => {
+        if (error) throw error;
+        return data.session;
+      })
+      .finally(() => { refreshPromise = null; });
+  }
+  return refreshPromise;
+};
+
 // Add a request interceptor to attach the auth token
 client.interceptors.request.use(async (config) => {
   try {
@@ -34,7 +50,23 @@ client.interceptors.request.use(async (config) => {
 
 client.interceptors.response.use(
   response => response,
-  error => {
+  async error => {
+    const originalRequest = error.config;
+    // Retry one time after refreshing an expired token. The retry guard avoids
+    // loops for genuinely invalid sessions or permission errors.
+    if (error.response?.status === 401 && originalRequest && !originalRequest._retriedAfterRefresh) {
+      originalRequest._retriedAfterRefresh = true;
+      try {
+        const session = await refreshAccessToken();
+        if (session?.access_token) {
+          originalRequest.headers = originalRequest.headers || {};
+          originalRequest.headers.Authorization = `Bearer ${session.access_token}`;
+          return client(originalRequest);
+        }
+      } catch (refreshError) {
+        console.warn('[API] Session refresh failed:', refreshError.message);
+      }
+    }
     if (!error.response) {
       error.userMessage = 'Unable to reach Measora. Check your connection and try again.';
     }

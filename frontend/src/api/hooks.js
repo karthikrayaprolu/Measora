@@ -14,8 +14,9 @@ export const useIsAuthReady = () => {
 
 export const useProducts = () => {
   const authReady = useIsAuthReady();
+  const { user } = useAuth();
   return useQuery({
-    queryKey: ['products'],
+    queryKey: ['products', user?.id],
     queryFn: async () => {
       const { data } = await client.get('/products');
       return data;
@@ -35,8 +36,9 @@ export const useCreateSession = () => {
 
 export const useSession = (sessionId) => {
   const authReady = useIsAuthReady();
+  const { user } = useAuth();
   return useQuery({
-    queryKey: ['session', sessionId],
+    queryKey: ['session', user?.id, sessionId],
     queryFn: async () => {
       const { data } = await client.get(`/sessions/${sessionId}`);
       return data;
@@ -65,7 +67,7 @@ export const useUploadFrame = () => {
       return data;
     },
     onSuccess: (_, { sessionId }) => {
-      queryClient.invalidateQueries({ queryKey: ['session', sessionId] });
+      queryClient.invalidateQueries({ queryKey: ['session'] });
     },
   });
 };
@@ -78,7 +80,7 @@ export const useValidateFrame = () => {
       return data;
     },
     onSuccess: (_, { sessionId }) => {
-      queryClient.invalidateQueries({ queryKey: ['session', sessionId] });
+      queryClient.invalidateQueries({ queryKey: ['session'] });
     },
   });
 };
@@ -91,7 +93,7 @@ export const useConfirmPoints = () => {
       return data;
     },
     onSuccess: (_, { sessionId }) => {
-      queryClient.invalidateQueries({ queryKey: ['session', sessionId] });
+      queryClient.invalidateQueries({ queryKey: ['session'] });
     },
   });
 };
@@ -104,16 +106,17 @@ export const useFastEstimate = () => {
       return data;
     },
     onSuccess: (_, sessionId) => {
-      queryClient.invalidateQueries({ queryKey: ['session', sessionId] });
-      queryClient.invalidateQueries({ queryKey: ['fast-estimate', sessionId] });
+      queryClient.invalidateQueries({ queryKey: ['session'] });
+      queryClient.invalidateQueries({ queryKey: ['fast-estimate'] });
     },
   });
 };
 
 export const useGetFastEstimate = (sessionId, isReady) => {
   const authReady = useIsAuthReady();
+  const { user } = useAuth();
   return useQuery({
-    queryKey: ['fast-estimate', sessionId],
+    queryKey: ['fast-estimate', user?.id, sessionId],
     queryFn: async () => {
       const { data } = await client.get(`/sessions/${sessionId}/fast-estimate`);
       return data;
@@ -130,15 +133,16 @@ export const useAccurateEstimate = () => {
       return data;
     },
     onSuccess: (_, sessionId) => {
-      queryClient.invalidateQueries({ queryKey: ['session', sessionId] });
+      queryClient.invalidateQueries({ queryKey: ['session'] });
     },
   });
 };
 
 export const useBrands = (productType) => {
   const authReady = useIsAuthReady();
+  const { user } = useAuth();
   return useQuery({
-    queryKey: ['brands', productType],
+    queryKey: ['brands', user?.id, productType],
     queryFn: async () => {
       const { data } = await client.get(`/brands`, { params: { product_type: productType } });
       return data;
@@ -193,10 +197,11 @@ export const useDeleteMeasurement = () => {
   });
 };
 
-export const useResult = (sessionId) => {
+export const useResult = (sessionId, sessionStatus) => {
   const authReady = useIsAuthReady();
+  const { user } = useAuth();
   return useQuery({
-    queryKey: ['result', sessionId],
+    queryKey: ['result', user?.id, sessionId],
     queryFn: async () => {
       const { data } = await client.get(`/sessions/${sessionId}/result`);
       return data;
@@ -204,5 +209,13 @@ export const useResult = (sessionId) => {
     enabled: !!sessionId && authReady,
     retry: (count, error) => error?.response?.status === 404 ? count < 8 : count < 2,
     retryDelay: attempt => Math.min(1000 * 2 ** attempt, 5000),
+    // The accurate worker commits measurements shortly after it marks the
+    // session complete. Keep reading until the result itself has data, rather
+    // than leaving the page with the one empty response from that brief gap.
+    refetchInterval: (query) => {
+      if (sessionStatus === 'failed') return false;
+      return query.state.data?.measurements?.length ? false : 2000;
+    },
+    refetchIntervalInBackground: true,
   });
 };
