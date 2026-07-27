@@ -8,6 +8,7 @@ REQ-200-01 → REQ-200-08, REQ-300-01 → REQ-300-09
 import os
 import shutil
 import threading
+from multiprocessing import get_context
 
 from app.core.config import settings
 
@@ -44,7 +45,7 @@ def _bg_fast(session_id: str):
 
 def _bg_accurate(session_id: str):
     """
-    Background thread wrapper for the accurate estimate job.
+    Isolated-process wrapper for the accurate estimate job.
     File deletion is handled inside run_accurate_estimate itself (Q1 fix) —
     do NOT add a second shutil.rmtree here, which would race against the
     first deletion and obscure errors.
@@ -210,8 +211,10 @@ def trigger_accurate_estimate(
     session.status = "accurate_processing"
     db.commit()
 
-    t = threading.Thread(target=_bg_accurate, args=(session_id,), daemon=True)
-    t.start()
+    # OpenCV/ML native code must not share the API server process. A worker
+    # crash is contained to this scan and the job runner records it as failed.
+    worker = get_context("spawn").Process(target=_bg_accurate, args=(session_id,), daemon=True)
+    worker.start()
 
     return JobAcceptedResponse(
         job_id=job.id,

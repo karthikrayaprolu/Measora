@@ -118,6 +118,13 @@ export default function ResultPage() {
         </div>
 
         {recommendationMutation.isError && <Banner type="error" title="Recommendation unavailable" message="Try another brand or check your connection." />}
+        {recommendation?.recapture_suggested && (
+          <Banner
+            type="warning"
+            title="Retake recommended"
+            message="Your front and side photos were captured at different scales or could not be measured consistently. Retake both photos from the same distance for a reliable size."
+          />
+        )}
 
         {recommendation ? (
           <section className="result-hero" aria-live="polite">

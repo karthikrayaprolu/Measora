@@ -25,7 +25,8 @@ class Settings(BaseSettings):
     # Base URL of the deployed frontend (used for shareable result links)
     FRONTEND_BASE_URL: str = "https://measora.io"
 
-    SCALE_MISMATCH_THRESHOLD: float = 0.05          # Warn when front/side scale factors differ > 5%
+    SCALE_MISMATCH_THRESHOLD: float = 0.15          # Flag a quality warning above 15%
+    SCALE_MISMATCH_RETAKE_THRESHOLD: float = 0.25   # Do not recommend a size above 25%
     SCALE_MISMATCH_PENALTY_MULTIPLIER: float = 1.5
     DEBUG_MEASUREMENTS: bool = False                 # Enable internal debug endpoint (A8); never True in prod
 

@@ -88,7 +88,7 @@ export default function LandingPage() {
                 <ArrowRight size={18} aria-hidden="true" />
               </Link>
               <p className="lp-cta-sub" style={{ marginTop: 'var(--space-3)', color: 'var(--color-ink-muted)', fontWeight: 500 }}>
-                Free · No account required · Results in under 2 minutes
+                Free · Results in under 2 minutes
               </p>
             </div>
           </div>

@@ -179,6 +179,18 @@ def _apply_width_range_guard(
 
 
 # ---------------------------------------------------------------------------
+# Module-level helper: average visible landmark y-coordinate for a group
+# ---------------------------------------------------------------------------
+
+def _visible_group_y(lms: List[FakeLandmark], indices: Tuple[int, ...], label: str) -> float:
+    """Average only observed joints; side poses deliberately omit one side."""
+    values = [lms[index].y for index in indices if lms[index].visibility >= 0.3]
+    if not values:
+        raise ValueError(f"Missing visible {label} landmark for measurement.")
+    return sum(values) / len(values)
+
+
+# ---------------------------------------------------------------------------
 # A2: Segmentation width reader — returns raw PIXEL widths (not normalized)
 # ---------------------------------------------------------------------------
 
@@ -237,6 +249,95 @@ def _get_segmentation_widths(img_path: str, y_ratios: List[float]) -> List[float
     except Exception as e:
         logger.warning("Segmentation error in _get_segmentation_widths: %s", e)
         return [0.0] * len(y_ratios)
+
+
+# ---------------------------------------------------------------------------
+# Stable body-outline extraction (used by Accurate Tier)
+# ---------------------------------------------------------------------------
+
+def _get_silhouette_widths(
+    img_path: str,
+    y_ratios: List[float],
+    landmarks: List[FakeLandmark],
+) -> List[float]:
+    """Measure torso widths from an OpenCV foreground silhouette.
+
+    MediaPipe segmentation masks are disabled because their Windows bridge can
+    crash the interpreter. GrabCut is seeded from accepted pose landmarks and
+    produces an image-specific front width or side depth. It deliberately
+    raises on weak extraction: fixed body-depth defaults are not trustworthy.
+
+    Torso x-boundary clamping: each row is scanned only within a horizontal
+    window derived from the shoulder and hip landmarks (+ 15% margin). This
+    prevents the arms — which are spread away from the body — from being
+    counted as part of the torso width.
+    """
+    image = cv2.imread(img_path, cv2.IMREAD_COLOR)
+    if image is None:
+        raise ValueError(f"Could not decode image for silhouette extraction: {img_path!r}")
+    height, width = image.shape[:2]
+    visible = [lm for lm in landmarks if lm.visibility >= 0.3 and 0 <= lm.x <= 1 and 0 <= lm.y <= 1]
+    # Side poses intentionally retain only the camera-facing landmarks, so a
+    # valid accepted side frame commonly has just a handful of points rather than
+    # a full bilateral skeleton. Two body landmarks are enough to seed GrabCut.
+    if len(visible) < 2:
+        raise ValueError("Not enough visible landmarks to measure the body outline.")
+
+    min_x, max_x = min(lm.x for lm in visible), max(lm.x for lm in visible)
+    min_y, max_y = min(lm.y for lm in visible), max(lm.y for lm in visible)
+    margin_x = max(0.08, (max_x - min_x) * 0.18)
+    margin_y = max(0.03, (max_y - min_y) * 0.04)
+    left = max(0, int((min_x - margin_x) * width))
+    top = max(0, int((min_y - margin_y) * height))
+    right = min(width, int((max_x + margin_x) * width))
+    bottom = min(height, int((max_y + margin_y) * height))
+    if right - left < width * 0.12 or bottom - top < height * 0.35:
+        raise ValueError("Person is too small or cropped for body-outline measurement.")
+
+    mask = np.zeros((height, width), np.uint8)
+    bg_model, fg_model = np.zeros((1, 65), np.float64), np.zeros((1, 65), np.float64)
+    cv2.grabCut(image, mask, (left, top, right - left, bottom - top), bg_model, fg_model, 4, cv2.GC_INIT_WITH_RECT)
+    foreground = np.where((mask == cv2.GC_FGD) | (mask == cv2.GC_PR_FGD), 255, 0).astype("uint8")
+    foreground = cv2.morphologyEx(foreground, cv2.MORPH_CLOSE, np.ones((5, 5), np.uint8))
+
+    centre_x = int(np.median([lm.x for lm in visible]) * width)
+
+    # Build torso x-bounds from shoulder (11,12) and hip (23,24) landmarks.
+    # We use only those specific torso landmarks that are visible and clamp each
+    # row scan to this range (+15% margin) so spread arms are excluded.
+    torso_lm_indices = (11, 12, 23, 24)
+    torso_xs = [
+        landmarks[i].x for i in torso_lm_indices
+        if landmarks[i].visibility >= 0.3 and 0 <= landmarks[i].x <= 1
+    ]
+    if torso_xs:
+        torso_margin = max(0.05, (max(torso_xs) - min(torso_xs)) * 0.15)
+        torso_left_px  = max(0, int((min(torso_xs) - torso_margin) * width))
+        torso_right_px = min(width, int((max(torso_xs) + torso_margin) * width))
+    else:
+        # Fallback: no clamping if torso landmarks unavailable
+        torso_left_px, torso_right_px = 0, width
+
+    widths = []
+    for y_ratio in y_ratios:
+        y_idx = int(y_ratio * height)
+        if not 0 <= y_idx < height:
+            raise ValueError("A required body measurement row is outside the image.")
+        row = foreground[y_idx]
+        # Clamp the row to the torso x-window before finding segments
+        clamped_row = row.copy()
+        clamped_row[:torso_left_px] = 0
+        clamped_row[torso_right_px:] = 0
+        transitions = np.diff(np.r_[0, clamped_row > 0, 0].astype(np.int8))
+        starts, ends = np.where(transitions == 1)[0], np.where(transitions == -1)[0]
+        segments = [(start, end) for start, end in zip(starts, ends) if end - start >= width * 0.025]
+        if not segments:
+            raise ValueError("Could not isolate the body outline at a required measurement point.")
+        central_segments = [segment for segment in segments if segment[0] <= centre_x < segment[1]]
+        start, end = max(central_segments or segments, key=lambda segment: segment[1] - segment[0])
+        widths.append(float(end - start))
+    return widths
+
 
 
 # ---------------------------------------------------------------------------
@@ -442,25 +543,13 @@ def extract_accurate_measurements(
                              "scale_px_to_cm": round(scale_px_to_cm, 6)})
 
         # y_ratios from normalized landmark coords — used as image-height fractions
-        chest_y = (front[11].y + front[12].y) / 2.0
-        hip_y   = (front[23].y + front[24].y) / 2.0
+        chest_y = _visible_group_y(front, (11, 12), "shoulder")
+        hip_y   = _visible_group_y(front, (23, 24), "hip")
         waist_y = chest_y + (hip_y - chest_y) * 0.6
 
         # A2: segmentation widths in raw pixels; we convert to cm here using THIS frame's scale
-        seg_widths_px = _get_segmentation_widths(frame.file_path, [chest_y, waist_y, hip_y])
-
-        chest_w_cm = (
-            seg_widths_px[0] * scale_px_to_cm if seg_widths_px[0] > 0
-            else _dist_2d_px(front, 11, 12, img_w, img_h) * scale_px_to_cm * 1.1
-        )
-        waist_w_cm = (
-            seg_widths_px[1] * scale_px_to_cm if seg_widths_px[1] > 0
-            else _dist_2d_px(front, 23, 24, img_w, img_h) * scale_px_to_cm * 0.9
-        )
-        hip_w_cm = (
-            seg_widths_px[2] * scale_px_to_cm if seg_widths_px[2] > 0
-            else _dist_2d_px(front, 23, 24, img_w, img_h) * scale_px_to_cm
-        )
+        silhouette_widths_px = _get_silhouette_widths(frame.file_path, [chest_y, waist_y, hip_y], front)
+        chest_w_cm, waist_w_cm, hip_w_cm = [value * scale_px_to_cm for value in silhouette_widths_px]
 
         shoulder_w_cm = _dist_2d_px(front, 11, 12, img_w, img_h) * scale_px_to_cm
 
@@ -513,16 +602,13 @@ def extract_accurate_measurements(
                             "height_px": round(height_px, 1),
                             "scale_px_to_cm": round(scale_px_to_cm, 6)})
 
-        chest_y = (side[11].y + side[12].y) / 2.0
-        hip_y   = (side[23].y + side[24].y) / 2.0
+        chest_y = _visible_group_y(side, (11, 12), "shoulder")
+        hip_y   = _visible_group_y(side, (23, 24), "hip")
         waist_y = chest_y + (hip_y - chest_y) * 0.6
 
         # A2: segmentation depths in pixels; convert using THIS frame's scale (A4)
-        seg_depths_px = _get_segmentation_widths(frame.file_path, [chest_y, waist_y, hip_y])
-
-        chest_d_cm = seg_depths_px[0] * scale_px_to_cm if seg_depths_px[0] > 0 else 25.0
-        waist_d_cm = seg_depths_px[1] * scale_px_to_cm if seg_depths_px[1] > 0 else 20.0
-        hip_d_cm   = seg_depths_px[2] * scale_px_to_cm if seg_depths_px[2] > 0 else 25.0
+        silhouette_depths_px = _get_silhouette_widths(frame.file_path, [chest_y, waist_y, hip_y], side)
+        chest_d_cm, waist_d_cm, hip_d_cm = [value * scale_px_to_cm for value in silhouette_depths_px]
 
         side_props.append({
             "chest_d": chest_d_cm,
@@ -596,9 +682,9 @@ def extract_accurate_measurements(
         if scale_mismatch and iso in cross_image_measurements:
             new_res *= settings.SCALE_MISMATCH_PENALTY_MULTIPLIER
 
-        if iso == "waist_circumference" and val > chest_circ + 15:
+        if iso == "waist_circumference" and val > round(chest_circ + 5, 1):
             new_res     = 5.0
-            new_val     = chest_circ + 15
+            new_val     = round(chest_circ + 5, 1)
             was_clipped = True
 
         if iso == "inseam_length":
@@ -623,6 +709,8 @@ def extract_accurate_measurements(
         "waist_d_cm":  round(s_avg["waist_d"],  2),
         "hip_w_cm":    round(f_avg["hip_w"],     2),
         "hip_d_cm":    round(s_avg["hip_d"],     2),
+        "scale_divergence_pct": round(sf_diff_pct * 100, 2),
+        "recapture_required": sf_diff_pct > settings.SCALE_MISMATCH_RETAKE_THRESHOLD,
         # Debug fields (always populated; exposed only when DEBUG_MEASUREMENTS=True in A8)
         "_debug": {
             "front_frames": front_debug,

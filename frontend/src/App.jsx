@@ -3,6 +3,7 @@ import { Navigate, Outlet, Route, Routes } from 'react-router-dom';
 import { AppShell } from './components/AppShell';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { Toaster } from 'react-hot-toast';
+import { SmoothCursor } from './components/ui/SmoothCursor';
 
 const LandingPage = lazy(() => import('./LandingPage'));
 const Dashboard = lazy(() => import('./pages/Dashboard'));
@@ -21,6 +22,7 @@ export default function App() {
   return (
     <Suspense fallback={<RouteLoader />}>
       <AuthProvider>
+        <SmoothCursor />
         <Toaster position="bottom-center" />
         <Routes>
           <Route path="/" element={<LandingPage />} />

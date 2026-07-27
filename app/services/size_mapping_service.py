@@ -159,6 +159,19 @@ def compute_size_recommendation(
         
     session = db.query(models.Session).filter(models.Session.id == session_id).first()
     has_scale_mismatch = session.has_scale_mismatch if session else False
+    scale_divergence_pct = 0.0
+    accurate_job = (
+        db.query(models.Job)
+        .filter(
+            models.Job.session_id == session_id,
+            models.Job.job_type == "accurate_estimate",
+            models.Job.status == "complete",
+        )
+        .first()
+    )
+    if accurate_job:
+        scale_divergence_pct = float(accurate_job.get_result().get("raw_dimensions", {}).get("scale_divergence_pct", 0.0))
+    requires_recapture = scale_divergence_pct > settings.SCALE_MISMATCH_RETAKE_THRESHOLD * 100
 
     # Gather measurements
     db_measurements = (
@@ -247,8 +260,14 @@ def compute_size_recommendation(
         if conf_level == ConfidenceLevel.high:
             conf_level = ConfidenceLevel.medium
 
+    # A photo pair taken at materially different distances cannot produce a
+    # reliable circumference, regardless of how well it fits a size chart.
+    if requires_recapture:
+        conf_level = ConfidenceLevel.low
+        best_score = min(best_score, 0.45)
+
     low_confidence = conf_level == ConfidenceLevel.low
-    recapture = low_confidence or (avg_residual > 3.0)
+    recapture = low_confidence or (avg_residual > 3.0) or requires_recapture
 
     # Persist recommendation
     existing = (

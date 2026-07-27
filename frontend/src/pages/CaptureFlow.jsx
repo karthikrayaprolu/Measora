@@ -443,16 +443,20 @@ export default function CaptureFlow() {
 function Guide({ onContinue, animCls }) {
   const tips = [
     {
-      title: 'Give yourself space',
-      copy: 'Your full body — head to feet — must be visible in each photo.',
+      title: 'Stand 2 metres away',
+      copy: 'Ask someone to hold the camera, or prop it up at chest height. Your full body — head to feet — must be visible in both photos, taken from the same distance.',
     },
     {
-      title: 'Wear fitted clothing',
-      copy: 'Fitted fabric lets the AI detect your shape accurately. Avoid loose jumpers or coats.',
+      title: 'Wear tight-fitting clothing',
+      copy: 'Form-fitting clothes (e.g. a snug T-shirt and leggings or fitted jeans) let the AI read your body shape accurately. Loose, baggy, or layered clothing adds measurement error.',
     },
     {
       title: 'Use even lighting',
       copy: 'Face a window or light source. Avoid strong back-lighting or heavy shadows.',
+    },
+    {
+      title: 'Stand straight, arms slightly out',
+      copy: 'Keep your arms a few centimetres away from your sides. Feet together, looking straight ahead.',
     },
   ];
 
@@ -482,12 +486,17 @@ function Guide({ onContinue, animCls }) {
 
       <div
         className="banner banner--info"
-        style={{ alignItems: 'center' }}
+        style={{ alignItems: 'flex-start', gap: 'var(--space-3)' }}
       >
-        <ShieldCheck size={18} aria-hidden="true" style={{ flexShrink: 0 }} />
-        <p className="banner__message">
-          Choose a private space. Your photos are only used for measurement and aren't stored on our servers.
-        </p>
+        <ShieldCheck size={20} aria-hidden="true" style={{ flexShrink: 0, marginTop: 2 }} />
+        <div>
+          <p className="banner__message" style={{ fontWeight: 600, marginBottom: 'var(--space-1)' }}>
+            Your photos are never stored
+          </p>
+          <p className="banner__message" style={{ opacity: 0.85 }}>
+            Photos are sent securely over HTTPS, used only to compute your measurements, and permanently deleted from our servers the moment processing is complete. We never see, save, or share your images.
+          </p>
+        </div>
       </div>
 
       <div className="sticky-action">
