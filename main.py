@@ -90,7 +90,18 @@ def root():
 
 @app.get("/health", tags=["Health"])
 def health():
-    return {"status": "ok"}
+    from app.services.pose_service import mp_available, pose_estimator
+    import os
+
+    model_path = os.path.join(
+        os.path.dirname(__file__), "app", "models", "pose_landmarker.task"
+    )
+    return {
+        "status": "ok",
+        "pose_detection": "available" if mp_available else "unavailable",
+        "model_file_present": os.path.exists(model_path),
+        "model_path": os.path.abspath(model_path),
+    }
 
 
 # ─── Include all REST routers under /v1 ───────────────────────────────────────
