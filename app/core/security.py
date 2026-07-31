@@ -4,8 +4,8 @@ JWT verification for Supabase-issued tokens.
 Supabase now issues ES256 (ECDSA P-256) tokens by default instead of
 HS256 (HMAC-SHA256). This module handles both:
 
-  1. ES256  — verified against Supabase's JWKS public key endpoint (primary).
-  2. HS256  — verified against the base64-decoded (or raw) SECRET_KEY (legacy
+  1. ES256    verified against Supabase's JWKS public key endpoint (primary).
+  2. HS256    verified against the base64-decoded (or raw) SECRET_KEY (legacy
               fallback for older Supabase projects or custom tokens).
 """
 import base64
@@ -30,7 +30,7 @@ pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 http_bearer = HTTPBearer(auto_error=False)
 
 # ---------------------------------------------------------------------------
-# JWKS cache — fetched from Supabase once, refreshed every hour.
+# JWKS cache   fetched from Supabase once, refreshed every hour.
 # ---------------------------------------------------------------------------
 _jwks_cache: dict = {}          # kid -> public key bytes (PEM)
 _jwks_fetched_at: float = 0.0
@@ -156,7 +156,7 @@ def decode_token(token: str) -> Optional[str]:
         if user_id:
             return user_id
 
-        # JWKS may be stale — force refresh once and retry
+        # JWKS may be stale   force refresh once and retry
         logger.info("ES256 verify failed with cached JWKS, forcing refresh...")
         global _jwks_fetched_at
         with _jwks_lock:
@@ -182,7 +182,7 @@ async def get_current_user(
     credentials: Optional[HTTPAuthorizationCredentials] = Depends(http_bearer),
 ) -> str:
     """
-    FastAPI dependency — returns the user's Supabase UUID from a valid JWT.
+    FastAPI dependency   returns the user's Supabase UUID from a valid JWT.
     Raises HTTP 401 if the token is missing or invalid.
     """
     if credentials is None:
@@ -193,7 +193,7 @@ async def get_current_user(
             headers={"WWW-Authenticate": "Bearer"},
         )
 
-    # Log token prefix to diagnose format issues (safe — only first 20 chars)
+    # Log token prefix to diagnose format issues (safe   only first 20 chars)
     token_preview = credentials.credentials[:20] if credentials.credentials else "(empty)"
     logger.info(f"Verifying token starting with: {token_preview}...")
 
@@ -212,7 +212,7 @@ async def get_admin_user(
     credentials: Optional[HTTPAuthorizationCredentials] = Depends(http_bearer),
 ) -> str:
     """
-    Admin-only guard — token ``sub`` must equal ``'admin'``\u200b.
+    Admin-only guard   token ``sub`` must equal ``'admin'``\u200b.
     Raises HTTP 401 if no token is provided; HTTP 403 if the token is valid
     but does not belong to the admin account.
     """

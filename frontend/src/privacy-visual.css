@@ -1,0 +1,141 @@
+.privacy-visual-container {
+  flex: 1;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  padding-left: 2rem;
+  margin-top: 8rem;
+}
+
+.privacy-visual {
+  width: 260px;
+  height: 260px;
+  position: relative;
+  background: rgba(255, 255, 255, 0.4);
+  border-radius: var(--radius-2xl, 24px);
+  border: 1px solid var(--color-hairline, rgba(42, 31, 22, 0.12));
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.03);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.5s ease, box-shadow 0.5s ease, background 0.5s ease;
+  overflow: hidden;
+}
+
+.lp-privacy:hover .privacy-visual {
+  transform: translateY(-8px);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.08);
+  background: rgba(255, 255, 255, 0.8);
+}
+
+.pv-svg {
+  width: 160px;
+  height: 160px;
+}
+
+.pv-card {
+  fill: var(--color-canvas, #F5EFE6);
+  stroke: var(--color-ink-muted, #6B5D4F);
+  stroke-width: 2;
+  transition: opacity 0.3s 0.8s ease;
+}
+
+.pv-avatar-head,
+.pv-avatar-body {
+  fill: none;
+  stroke: var(--color-ink-muted, #6B5D4F);
+  stroke-width: 2;
+  transition: opacity 0.3s 0.8s ease;
+}
+
+.pv-laser {
+  stroke: var(--color-brass, #B08D57);
+  stroke-width: 2;
+  opacity: 0;
+  stroke-dasharray: 120;
+  stroke-dashoffset: 0;
+}
+
+.lp-privacy:hover .pv-laser {
+  animation: scanLaser 0.9s ease-in-out forwards;
+}
+
+.pv-math-dots {
+  fill: var(--color-ink-muted, #6B5D4F);
+  opacity: 0;
+  transform-origin: 80px 80px;
+}
+
+.lp-privacy:hover .pv-math-dots {
+  animation: showDots 0.6s 0.8s forwards;
+}
+
+.pv-secure-lock {
+  stroke: var(--color-ink, #2A1F16);
+  fill: var(--color-canvas, #F5EFE6);
+  opacity: 0;
+  transform-origin: 80px 80px;
+  transform: scale(0.5);
+}
+
+.lp-privacy:hover .pv-secure-lock {
+  animation: popLock 0.6s 1.2s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+}
+
+.lp-privacy:hover .pv-card,
+.lp-privacy:hover .pv-avatar-head,
+.lp-privacy:hover .pv-avatar-body {
+  opacity: 0;
+}
+
+@keyframes scanLaser {
+  0% {
+    opacity: 0;
+    transform: translateY(0);
+  }
+
+  20% {
+    opacity: 1;
+    transform: translateY(10px);
+  }
+
+  80% {
+    opacity: 1;
+    transform: translateY(130px);
+  }
+
+  100% {
+    opacity: 0;
+    transform: translateY(140px);
+  }
+}
+
+@keyframes showDots {
+  0% {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+
+  100% {
+    opacity: 0.35;
+    transform: scale(1);
+  }
+}
+
+@keyframes popLock {
+  0% {
+    opacity: 0;
+    transform: scale(0.5);
+  }
+
+  100% {
+    opacity: 1;
+    transform: scale(1.4);
+  }
+}
+
+@media (max-width: 800px) {
+  .privacy-visual-container {
+    display: none;
+  }
+}

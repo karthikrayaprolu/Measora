@@ -1,13 +1,13 @@
 /**
- * Card — Measora Design System
+ * Card   Measora Design System
  *
  * Variants:
- *   default      — standard bordered card
- *   measurement  — with tailor ruler-tick top border (signature element)
- *   bento        — large padded hero card with deeper elevation
- *   raised       — elevated with shadow-md
- *   interactive  — hover lift + brass border accent
- *   error        — danger-tinted surface
+ *   default        standard bordered card
+ *   measurement    with tailor ruler-tick top border (signature element)
+ *   bento          large padded hero card with deeper elevation
+ *   raised         elevated with shadow-md
+ *   interactive    hover lift + brass border accent
+ *   error          danger-tinted surface
  */
 export function Card({
   children,

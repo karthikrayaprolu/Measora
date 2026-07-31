@@ -1,8 +1,8 @@
 """
-GET    /v1/users/{user_id}/profile           — retrieve stored measurement profile
-PUT    /v1/users/{user_id}/profile           — update measurement values
-DELETE /v1/users/{user_id}/profile           — delete profile (GDPR)
-POST   /v1/users/{user_id}/profile/recommend — recommend from stored profile
+GET    /v1/users/{user_id}/profile             retrieve stored measurement profile
+PUT    /v1/users/{user_id}/profile             update measurement values
+DELETE /v1/users/{user_id}/profile             delete profile (GDPR)
+POST   /v1/users/{user_id}/profile/recommend   recommend from stored profile
 REQ-500-03 → REQ-500-06, REQ-500-04
 """
 from datetime import datetime, timezone
@@ -205,7 +205,7 @@ def recommend_from_profile(
     db: Session = Depends(get_db),
 ):
     """
-    Get a size recommendation from the user's stored profile —
+    Get a size recommendation from the user's stored profile  
     no new capture session required.
     REQ-500-04
     """

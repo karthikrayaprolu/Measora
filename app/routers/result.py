@@ -1,6 +1,6 @@
 """
-GET /v1/sessions/{session_id}/result         — final output (Confirmed size)
-GET /v1/sessions/{session_id}/result/export  — shareable export link
+GET /v1/sessions/{session_id}/result           final output (Confirmed size)
+GET /v1/sessions/{session_id}/result/export    shareable export link
 REQ-500-01, REQ-500-02, REQ-500-07
 """
 from datetime import datetime, timedelta, timezone

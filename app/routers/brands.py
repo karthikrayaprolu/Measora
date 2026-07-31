@@ -1,6 +1,6 @@
 """
-GET /v1/brands                             — list all brands (filterable)
-GET /v1/brands/{brand_id}/size-charts      — get brand size chart
+GET /v1/brands                               list all brands (filterable)
+GET /v1/brands/{brand_id}/size-charts        get brand size chart
 REQ-400-01, REQ-400-02, REQ-400-07, REQ-400-08
 """
 from typing import List, Optional

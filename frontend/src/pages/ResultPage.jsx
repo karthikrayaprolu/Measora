@@ -131,7 +131,7 @@ export default function ResultPage() {
             <p style={{ margin: 0, fontSize: 13, fontWeight: 800, textTransform: 'uppercase' }}>
               Recommended size
             </p>
-            <div className="result-size">{recommendation.recommended_size || '—'}</div>
+            <div className="result-size">{recommendation.recommended_size || ' '}</div>
             {confidence?.score != null && (
               <span className={`confidence ${confidence.level === 'Low' ? 'confidence--low' : confidence.level === 'Medium' ? 'confidence--medium' : ''}`}>
                 {confidence.level === 'Low' ? <AlertTriangle size={16} /> : <CheckCircle2 size={16} />}

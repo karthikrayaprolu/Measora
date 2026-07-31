@@ -11,7 +11,7 @@ from app.schemas.frame import ValidationResult
 logger = logging.getLogger(__name__)
 
 # ---------------------------------------------------------------------------
-# MediaPipe initialisation — runs once at import time.
+# MediaPipe initialisation   runs once at import time.
 # If the package is missing or the model file is absent the rest of the
 # module degrades gracefully: human-detection is skipped and pose validation
 # returns a safe "unavailable" result instead of crashing.
@@ -41,13 +41,13 @@ try:
     logger.info("MediaPipe PoseLandmarker initialised successfully")
 except Exception:  # broad catch: ImportError, FileNotFoundError, native crashes
     logger.warning(
-        "MediaPipe failed to initialise — pose detection unavailable.\n%s",
+        "MediaPipe failed to initialise   pose detection unavailable.\n%s",
         traceback.format_exc(),
     )
     mp = None
     pose_estimator = None
 
-# Exported flag — lets callers (e.g. the validate endpoint) know whether
+# Exported flag   lets callers (e.g. the validate endpoint) know whether
 # pose detection is available without re-importing mediapipe themselves.
 mp_available: bool = pose_estimator is not None
 
@@ -89,10 +89,10 @@ def contains_human(image_bytes: bytes) -> bool:
     to retake); a false rejection of every photo is a total service outage.
     """
     if not mp_available or pose_estimator is None:
-        # MediaPipe unavailable — let the upload proceed; validate endpoint
+        # MediaPipe unavailable   let the upload proceed; validate endpoint
         # will apply whatever checks are possible without full pose detection.
         logger.warning(
-            "contains_human: MediaPipe unavailable — skipping pre-upload human check"
+            "contains_human: MediaPipe unavailable   skipping pre-upload human check"
         )
         return True
 
@@ -107,7 +107,7 @@ def contains_human(image_bytes: bytes) -> bool:
         return bool(results and results.pose_landmarks)
     except Exception:
         logger.warning("contains_human: detection raised an error\n%s", traceback.format_exc())
-        # Fail open on unexpected errors too — don't block the user.
+        # Fail open on unexpected errors too   don't block the user.
         return True
 
 
@@ -155,10 +155,10 @@ def validate_frame(
     contrast = np.std(gray)
     if brightness < 40 or contrast < 20:
         res = ValidationResult(lighting_ok=False, reason="POOR_LIGHTING")
-        return res, ["Lighting too low or poor contrast — move to a brighter area"], 0.0
+        return res, ["Lighting too low or poor contrast   move to a brighter area"], 0.0
 
     if not mp_available or pose_estimator is None:
-        # Pose detection unavailable — return a soft pass so the upload is not
+        # Pose detection unavailable   return a soft pass so the upload is not
         # permanently blocked. The UI will still show guidance prompts.
         return (
             ValidationResult(
@@ -203,7 +203,7 @@ def validate_frame(
         
         if max_vis < 0.3 or not in_frame:
             res = ValidationResult(lighting_ok=True, full_body_visible=False, reason="LOW_CONFIDENCE_LANDMARK")
-            return res, ["Step back or adjust lighting — full body must be clearly visible head-to-toe"], 0.0
+            return res, ["Step back or adjust lighting   full body must be clearly visible head-to-toe"], 0.0
 
     full_body_visible = True
 

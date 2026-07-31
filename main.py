@@ -1,5 +1,5 @@
 """
-Measora API — FastAPI Application Entry Point
+Measora API   FastAPI Application Entry Point
 Run with: uvicorn main:app --reload --host 0.0.0.0 --port 8000
 Docs at:  http://localhost:8000/docs
 """
@@ -10,7 +10,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.core.config import settings
 from app.db.database import Base, engine, get_db, SessionLocal
-from app.db import models  # noqa: F401 — ensures all models are registered
+from app.db import models  # noqa: F401   ensures all models are registered
 from app.db.seed import seed_brands
 
 from app.routers import (

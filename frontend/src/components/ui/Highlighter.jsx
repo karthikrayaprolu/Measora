@@ -1,5 +1,5 @@
 /**
- * Highlighter — human-drawn annotation effect using rough-notation.
+ * Highlighter   human-drawn annotation effect using rough-notation.
  *
  * Supports: highlight | underline | circle | box | bracket |
  *           strike-through | crossed-off

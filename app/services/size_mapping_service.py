@@ -118,7 +118,7 @@ def _score_entry(
             half = (hi - lo) / 2
             score = 1.0 - abs(val - centre) / half * 0.5
         else:
-            # Out of range — penalise
+            # Out of range   penalise
             if val < lo:
                 score = max(0.0, 1.0 - (lo - val) / (lo + 1e-9))
             else:

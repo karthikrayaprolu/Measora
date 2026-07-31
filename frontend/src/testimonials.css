@@ -1,0 +1,135 @@
+/* testimonials.css */
+
+.testimonial-section {
+  position: relative;
+  overflow: hidden;
+}
+
+.testimonial-grid-premium {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 2rem;
+  margin-top: 3rem;
+  position: relative;
+  z-index: 2;
+}
+
+.testimonial-card-premium {
+  position: relative;
+  background: rgba(255, 255, 255, 0.4);
+  border-radius: 20px;
+  padding: 2px; /* For the gradient border */
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  cursor: default;
+}
+
+/* The actual inner content */
+.testimonial-card-premium__inner {
+  position: relative;
+  background: var(--color-canvas, #F5EFE6);
+  border-radius: 18px;
+  height: 100%;
+  padding: 2rem;
+  display: flex;
+  flex-direction: column;
+  z-index: 2;
+  overflow: hidden;
+}
+
+/* Spotlight glow background for the border */
+.testimonial-card-premium::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: radial-gradient(
+    800px circle at var(--mouse-x, 0) var(--mouse-y, 0),
+    rgba(176, 141, 87, 0.6), /* Brass color glow */
+    transparent 40%
+  );
+  border-radius: 20px;
+  z-index: 1;
+  opacity: 0;
+  transition: opacity 0.5s ease;
+}
+
+/* Spotlight glow inside the card */
+.testimonial-card-premium__inner::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: radial-gradient(
+    600px circle at var(--mouse-x, 0) var(--mouse-y, 0),
+    rgba(176, 141, 87, 0.1), 
+    transparent 40%
+  );
+  z-index: -1;
+  opacity: 0;
+  transition: opacity 0.5s ease;
+}
+
+.testimonial-card-premium:hover::before,
+.testimonial-card-premium:hover .testimonial-card-premium__inner::before {
+  opacity: 1;
+}
+
+.testimonial-card-premium:hover {
+  transform: translateY(-5px) scale(1.02);
+  box-shadow: 0 20px 40px rgba(0,0,0,0.08);
+}
+
+.tc-quote-icon {
+  color: var(--color-brass, #B08D57);
+  opacity: 0.4;
+  margin-bottom: 1rem;
+}
+
+.testimonial-card-premium blockquote {
+  margin: 0 0 1.5rem;
+  font-size: 1.1rem;
+  line-height: 1.6;
+  color: var(--color-ink, #2A1F16);
+  flex-grow: 1;
+}
+
+.testimonial-card-premium figcaption {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid rgba(42, 31, 22, 0.1);
+}
+
+.tc-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--color-ink);
+  color: var(--color-canvas);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  font-size: 1.2rem;
+}
+
+.tc-meta {
+  display: flex;
+  flex-direction: column;
+}
+
+.tc-name {
+  font-weight: 700;
+  color: var(--color-walnut, #4A3423);
+  font-size: 0.95rem;
+}
+
+.tc-detail {
+  color: var(--color-ink-muted, #6B5D4F);
+  font-size: 0.85rem;
+}

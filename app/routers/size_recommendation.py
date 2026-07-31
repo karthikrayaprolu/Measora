@@ -1,6 +1,6 @@
 """
-POST /v1/sessions/{session_id}/size-recommendation — compute recommendation
-GET  /v1/sessions/{session_id}/size-recommendation — retrieve recommendation
+POST /v1/sessions/{session_id}/size-recommendation   compute recommendation
+GET  /v1/sessions/{session_id}/size-recommendation   retrieve recommendation
 REQ-400-03 → REQ-400-08
 """
 from fastapi import APIRouter, Depends

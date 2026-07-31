@@ -1,5 +1,5 @@
 /**
- * StepIndicator — Measora Design System
+ * StepIndicator   Measora Design System
  *
  * Progress bar with ruler-tick track (signature element).
  * The .progress__track uses the ruler-tick CSS background from index.css.

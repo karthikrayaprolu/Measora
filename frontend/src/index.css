@@ -1,5 +1,5 @@
-﻿/* ═══════════════════════════════════════════════════════════════════
-   MEASORA DESIGN SYSTEM — Phase 1 Foundation
+/* ═══════════════════════════════════════════════════════════════════
+   MEASORA DESIGN SYSTEM   Phase 1 Foundation
    Craft-precision theme derived from tailor's toolkit:
    - Dark canvas + warm parchment light mode
    - Brass-amber precision accent (measuring tape brass)
@@ -10,12 +10,12 @@
 
 /* Fonts loaded via <link> in index.html for optimal performance */
 
-/* ── Remove Tailwind — we're using pure CSS variables ─────────────── */
-/* Tailwind plugin is present in vite.config.js but we don't import it — pure CSS token system below */
+/* ── Remove Tailwind   we're using pure CSS variables ─────────────── */
+/* Tailwind plugin is present in vite.config.js but we don't import it   pure CSS token system below */
 
 /* ── COLOR TOKENS ─────────────────────────────────────────────────── */
 /*
-  LIGHT THEME — warm parchment canvas
+  LIGHT THEME   warm parchment canvas
   Palette:
     Canvas:         #F4F1EC  (warm off-white, aged linen)
     Ink:            #1C1917  (warm near-black, not cool-gray)
@@ -27,11 +27,11 @@
     Primary Blue-Navy: #1A3A52  (bespoke tailor's midnight navy)
     Primary Active:    #2B5F8A  (trust, precision)
     
-    Brass Accent:   #B87C36  (measuring tape brass — used SPARINGLY)
+    Brass Accent:   #B87C36  (measuring tape brass   used SPARINGLY)
     Brass Light:    #F5E9D5  (brass glow tint)
     
     Success:        #2D6A4F  (fabric green)
-    Warning:        #B87C36  (same as brass — consistent warm amber)
+    Warning:        #B87C36  (same as brass   consistent warm amber)
     Danger:         #A23332  (deep vermillion, not harsh red)
     Info:           #1A3A52  (same as primary)
 */
@@ -55,14 +55,14 @@
     --color-border: #DDD8CF;
     --color-border-strong: #C2BBB0;
 
-    /* Primary — tailor's midnight navy */
+    /* Primary   tailor's midnight navy */
     --color-primary-50: #E8EFF4;
     --color-primary-100: #C5D8E8;
     --color-primary-500: #1A3A52;
     --color-primary-600: #133047;
     --color-primary-700: #0D2337;
 
-    /* Precision accent — measuring-tape brass  */
+    /* Precision accent   measuring-tape brass  */
     --color-brass: #B87C36;
     --color-brass-light: #F5E8D2;
     --color-brass-dark: #8A5A1E;
@@ -141,14 +141,14 @@
 
 /* ── TYPOGRAPHY TOKENS ────────────────────────────────────────────── */
 :root {
-    /* Display face: Cormorant Garamond — heritage craft, editorial weight */
-    --font-display: 'Cormorant Garamond', Georgia, 'Times New Roman', serif;
+    /* Display face: Cormorant Garamond   heritage craft, editorial weight */
+    --font-display: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
 
-    /* Body face: Plus Jakarta Sans — warm, legible grotesque */
-    --font-sans: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    /* Body face: Plus Jakarta Sans   warm, legible grotesque */
+    --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
 
-    /* Data face: JetBrains Mono — measurement figures feel like instrument readings */
-    --font-mono: 'JetBrains Mono', 'Fira Code', 'Courier New', monospace;
+    /* Data face: JetBrains Mono   measurement figures feel like instrument readings */
+    --font-mono: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
 
     /* Type scale */
     --text-xs: 11px;
@@ -222,7 +222,7 @@ img {
     display: block;
 }
 
-/* Focus — visible, branded, not using default blue */
+/* Focus   visible, branded, not using default blue */
 :focus-visible {
     outline: 2px solid var(--color-brass);
     outline-offset: 3px;
@@ -236,7 +236,7 @@ img {
 
 /* ── TYPOGRAPHY UTILITY CLASSES ────────────────────────────────────── */
 
-/* Display headings — Cormorant, editorial weight */
+/* Display headings   Cormorant, editorial weight */
 .text-display-xl {
     font-family: var(--font-display);
     font-size: var(--text-5xl);
@@ -261,7 +261,7 @@ img {
     letter-spacing: -0.015em;
 }
 
-/* UI headings — Jakarta Sans, strong weight */
+/* UI headings   Jakarta Sans, strong weight */
 .text-heading-lg {
     font-family: var(--font-sans);
     font-size: var(--text-xl);
@@ -319,7 +319,7 @@ img {
     letter-spacing: var(--tracking-wide);
 }
 
-/* Data numerics — JetBrains Mono */
+/* Data numerics   JetBrains Mono */
 .text-data-xl {
     font-family: var(--font-mono);
     font-size: var(--text-4xl);
@@ -358,7 +358,7 @@ img {
   measurement-data containers and as the track of confidence bars.
   
   Drawn as a CSS background-image: repeating-linear-gradient pattern
-  creates marks at 8px intervals — just like a mm ruler.
+  creates marks at 8px intervals   just like a mm ruler.
 */
 
 .ruler-ticks {
@@ -635,7 +635,7 @@ img {
     pointer-events: none;
 }
 
-/* Primary — navy fill, white text */
+/* Primary   navy fill, white text */
 .button--primary {
     color: var(--color-canvas);
     background: var(--color-primary-500);
@@ -648,7 +648,7 @@ img {
     box-shadow: 0 4px 16px color-mix(in srgb, var(--color-primary-500) 35%, transparent);
 }
 
-/* Brass (accent) — used only for primary action in capture/precision contexts */
+/* Brass (accent)   used only for primary action in capture/precision contexts */
 .button--brass {
     color: var(--color-canvas);
     background: var(--color-brass);
@@ -661,7 +661,7 @@ img {
     box-shadow: 0 4px 16px color-mix(in srgb, var(--color-brass) 30%, transparent);
 }
 
-/* Secondary — muted surface */
+/* Secondary   muted surface */
 .button--secondary {
     color: var(--color-ink);
     background: var(--color-surface-muted);
@@ -727,7 +727,7 @@ img {
     overflow: hidden;
 }
 
-/* Measurement data card — gets the ruler tick signature at top */
+/* Measurement data card   gets the ruler tick signature at top */
 .card--measurement {
     border-radius: var(--radius-lg);
     border-top: 3px solid var(--color-brass);
@@ -1455,7 +1455,7 @@ img {
 }
 
 /* ═══════════════════════════════════════════════════════════════════
-   PHASE 2 ADDENDUM — Onboarding Flow Primitives
+   PHASE 2 ADDENDUM   Onboarding Flow Primitives
    New layout tokens required by the measure setup screens.
    Flagged: these are addenda to Phase 1, not substitutions.
    ═══════════════════════════════════════════════════════════════════ */
@@ -1537,7 +1537,7 @@ img {
     transform: translateY(0);
 }
 
-/* Category icon container — uses the measurement-motif SVG */
+/* Category icon container   uses the measurement-motif SVG */
 .category-card__icon {
     display: flex;
     align-items: center;
@@ -1567,7 +1567,7 @@ img {
     line-height: var(--leading-loose);
 }
 
-/* Coming soon badge — on footwear card */
+/* Coming soon badge   on footwear card */
 .coming-soon-badge {
     display: inline-flex;
     align-items: center;
@@ -1584,7 +1584,7 @@ img {
     text-transform: uppercase;
 }
 
-/* Footwear card is muted but not disabled — still tappable */
+/* Footwear card is muted but not disabled   still tappable */
 .category-card--soon {
     opacity: 0.72;
     cursor: default;
@@ -1632,7 +1632,7 @@ img {
     box-shadow: var(--shadow-sm);
 }
 
-/* Big measurement display — the "instrument reading" */
+/* Big measurement display   the "instrument reading" */
 .height-display {
     display: flex;
     align-items: baseline;
@@ -1682,7 +1682,7 @@ img {
     margin-bottom: 6px;
 }
 
-/* Range slider — styled to look like the ruler tick track */
+/* Range slider   styled to look like the ruler tick track */
 .height-slider {
     -webkit-appearance: none;
     appearance: none;
@@ -1973,38 +1973,275 @@ img {
 }
 
 /* Closing CTA: a concise fit note, not another generic banner. */
-.lp-cta-band { position: relative; isolation: isolate; background: radial-gradient(circle at 80% 35%, rgba(200,133,42,.18), transparent 26rem), linear-gradient(125deg, #211c18, #171411 62%, #2a211a); }
-.lp-cta-band::before { content: ''; position: absolute; inset: 0; z-index: -1; opacity: .34; background-image: linear-gradient(rgba(255,255,255,.04) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.04) 1px, transparent 1px); background-size: 44px 44px; mask-image: linear-gradient(90deg, black, transparent 76%); }
-.lp-cta-band__inner { position: relative; display: grid; grid-template-columns: minmax(0, 1fr) minmax(290px, 360px); align-items: center; gap: clamp(44px, 9vw, 128px); width: min(100% - 48px, 1120px); max-width: 1120px; margin-inline: auto; padding: clamp(72px, 9vw, 124px) 0; text-align: left; }
-.lp-cta-band .lp-ruler-strip { position: absolute; top: 18px; left: 0; right: 0; width: auto; opacity: .52; }
-.lp-cta-band .lp-eyebrow--inverse { justify-content: flex-start; }
-.lp-cta-band .lp-h2 { margin: 16px 0 18px; color: #fffaf2; font-size: clamp(2.75rem, 5vw, 4.9rem); line-height: .98; letter-spacing: -.04em; }
-.lp-cta-band__sub { max-width: 38ch; margin: 0 0 22px; color: rgba(255,250,242,.68); font-size: 15px; line-height: 1.65; }
-.lp-cta-band__proof { display: flex; flex-wrap: wrap; gap: 10px 18px; margin-bottom: 28px; color: rgba(255,250,242,.72); font: 600 10px/1 var(--font-mono); letter-spacing: .04em; text-transform: uppercase; }
-.lp-cta-band__proof span { display: inline-flex; align-items: center; gap: 6px; }
-.lp-cta-band__proof svg { color: #f1bd76; }
-.lp-cta-band .lp-cta-primary--inverse { min-height: 52px; padding-inline: 22px; border: 1px solid rgba(241,189,118,.45); background: #f1bd76; color: #211c18; box-shadow: 0 10px 28px rgba(0,0,0,.24); }
-.cta-fit-note { position: relative; overflow: hidden; padding: 18px; border: 1px solid rgba(241,189,118,.35); border-radius: 22px; background: rgba(255,253,249,.96); box-shadow: 0 26px 64px rgba(0,0,0,.27), 0 1px 0 rgba(255,255,255,.9) inset; color: #29221d; transform: rotate(2.5deg); }
-.cta-fit-note::after { content: ''; position: absolute; inset: 8px; border: 1px dashed rgba(200,133,42,.28); border-radius: 16px; pointer-events: none; }
-.cta-fit-note__header, .cta-fit-note__footer, .cta-fit-note__rows span { display: flex; align-items: center; }
-.cta-fit-note__header { position: relative; z-index: 1; justify-content: space-between; padding-bottom: 14px; border-bottom: 1px solid rgba(90,75,60,.13); color: #a76621; font: 700 10px/1 var(--font-mono); letter-spacing: .11em; text-transform: uppercase; }
-.cta-fit-note__size { position: relative; z-index: 1; display: grid; grid-template-columns: 1fr auto; align-items: end; padding: 22px 4px 16px; }
-.cta-fit-note__size small { align-self: start; color: #74685d; font: 600 9px/1 var(--font-mono); letter-spacing: .07em; text-transform: uppercase; }
-.cta-fit-note__size strong { grid-row: span 2; color: #193c55; font: 700 72px/.72 var(--font-display); letter-spacing: -.07em; }
-.cta-fit-note__size span { color: #2d6a4f; font: 700 10px/1 var(--font-mono); letter-spacing: .06em; text-transform: uppercase; }
-.cta-fit-note__rows { position: relative; z-index: 1; display: grid; gap: 11px; padding: 15px 4px; border-top: 1px solid rgba(90,75,60,.13); }
-.cta-fit-note__rows span { gap: 10px; color: #74685d; font: 600 10px/1 var(--font-mono); }
-.cta-fit-note__rows i { flex: 1; height: 1px; background: rgba(90,75,60,.18); }
-.cta-fit-note__rows b { color: #2d251f; font-weight: 700; }
-.cta-fit-note__footer { position: relative; z-index: 1; justify-content: space-between; padding: 13px 4px 2px; border-top: 1px solid rgba(90,75,60,.13); color: #2d6a4f; font: 700 9px/1 var(--font-mono); letter-spacing: .05em; text-transform: uppercase; }
-.cta-fit-note__footer span { display: inline-flex; align-items: center; gap: 6px; }
-.cta-fit-note__footer i { width: 6px; height: 6px; border-radius: 50%; background: #5ca779; }
-.lp-footer { padding: 0; border-top: 1px solid rgba(255,255,255,.08); background: #171411; }
-.lp-footer__inner { width: min(100% - 48px, 1120px); max-width: 1120px; min-height: 82px; padding: 0; }
-.lp-footer .brand { gap: 9px; color: rgba(255,250,242,.84); font: 600 14px/1 var(--font-sans); }
-.lp-footer .brand-mark { background: rgba(241,189,118,.14); color: #f1bd76; }
-.lp-footer__copy { color: rgba(255,250,242,.42); font-size: 11px; }
-@media (max-width: 760px) { .lp-cta-band__inner { grid-template-columns: 1fr; gap: 40px; width: min(100% - 32px, 540px); padding-block: 70px; } .lp-cta-band .lp-h2 { font-size: clamp(2.6rem, 12vw, 3.7rem); } .cta-fit-note { width: min(100%, 360px); margin-inline: auto; transform: rotate(1.5deg); } .lp-footer__inner { width: min(100% - 32px, 540px); min-height: 0; padding-block: 22px; align-items: flex-start; } .lp-footer__copy { line-height: 1.55; } }
+.lp-cta-band {
+    position: relative;
+    isolation: isolate;
+    background: radial-gradient(circle at 80% 35%, rgba(200, 133, 42, .18), transparent 26rem), linear-gradient(125deg, #211c18, #171411 62%, #2a211a);
+}
+
+.lp-cta-band::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    opacity: .34;
+    background-image: linear-gradient(rgba(255, 255, 255, .04) 1px, transparent 1px), linear-gradient(90deg, rgba(255, 255, 255, .04) 1px, transparent 1px);
+    background-size: 44px 44px;
+    mask-image: linear-gradient(90deg, black, transparent 76%);
+}
+
+.lp-cta-band__inner {
+    position: relative;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(290px, 360px);
+    align-items: center;
+    gap: clamp(44px, 9vw, 128px);
+    width: min(100% - 48px, 1120px);
+    max-width: 1120px;
+    margin-inline: auto;
+    padding: clamp(72px, 9vw, 124px) 0;
+    text-align: left;
+}
+
+.lp-cta-band .lp-ruler-strip {
+    position: absolute;
+    top: 18px;
+    left: 0;
+    right: 0;
+    width: auto;
+    opacity: .52;
+}
+
+.lp-cta-band .lp-eyebrow--inverse {
+    justify-content: flex-start;
+}
+
+.lp-cta-band .lp-h2 {
+    margin: 16px 0 18px;
+    color: #fffaf2;
+    font-size: clamp(2.75rem, 5vw, 4.9rem);
+    line-height: .98;
+    letter-spacing: -.04em;
+}
+
+.lp-cta-band__sub {
+    max-width: 38ch;
+    margin: 0 0 22px;
+    color: rgba(255, 250, 242, .68);
+    font-size: 15px;
+    line-height: 1.65;
+}
+
+.lp-cta-band__proof {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px 18px;
+    margin-bottom: 28px;
+    color: rgba(255, 250, 242, .72);
+    font: 600 10px/1 var(--font-mono);
+    letter-spacing: .04em;
+    text-transform: uppercase;
+}
+
+.lp-cta-band__proof span {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.lp-cta-band__proof svg {
+    color: #f1bd76;
+}
+
+.lp-cta-band .lp-cta-primary--inverse {
+    min-height: 52px;
+    padding-inline: 22px;
+    border: 1px solid rgba(241, 189, 118, .45);
+    background: #f1bd76;
+    color: #211c18;
+    box-shadow: 0 10px 28px rgba(0, 0, 0, .24);
+}
+
+.cta-fit-note {
+    position: relative;
+    overflow: hidden;
+    padding: 18px;
+    border: 1px solid rgba(241, 189, 118, .35);
+    border-radius: 22px;
+    background: rgba(255, 253, 249, .96);
+    box-shadow: 0 26px 64px rgba(0, 0, 0, .27), 0 1px 0 rgba(255, 255, 255, .9) inset;
+    color: #29221d;
+    transform: rotate(2.5deg);
+}
+
+.cta-fit-note::after {
+    content: '';
+    position: absolute;
+    inset: 8px;
+    border: 1px dashed rgba(200, 133, 42, .28);
+    border-radius: 16px;
+    pointer-events: none;
+}
+
+.cta-fit-note__header,
+.cta-fit-note__footer,
+.cta-fit-note__rows span {
+    display: flex;
+    align-items: center;
+}
+
+.cta-fit-note__header {
+    position: relative;
+    z-index: 1;
+    justify-content: space-between;
+    padding-bottom: 14px;
+    border-bottom: 1px solid rgba(90, 75, 60, .13);
+    color: #a76621;
+    font: 700 10px/1 var(--font-mono);
+    letter-spacing: .11em;
+    text-transform: uppercase;
+}
+
+.cta-fit-note__size {
+    position: relative;
+    z-index: 1;
+    display: grid;
+    grid-template-columns: 1fr auto;
+    align-items: end;
+    padding: 22px 4px 16px;
+}
+
+.cta-fit-note__size small {
+    align-self: start;
+    color: #74685d;
+    font: 600 9px/1 var(--font-mono);
+    letter-spacing: .07em;
+    text-transform: uppercase;
+}
+
+.cta-fit-note__size strong {
+    grid-row: span 2;
+    color: #193c55;
+    font: 700 72px/.72 var(--font-display);
+    letter-spacing: -.07em;
+}
+
+.cta-fit-note__size span {
+    color: #2d6a4f;
+    font: 700 10px/1 var(--font-mono);
+    letter-spacing: .06em;
+    text-transform: uppercase;
+}
+
+.cta-fit-note__rows {
+    position: relative;
+    z-index: 1;
+    display: grid;
+    gap: 11px;
+    padding: 15px 4px;
+    border-top: 1px solid rgba(90, 75, 60, .13);
+}
+
+.cta-fit-note__rows span {
+    gap: 10px;
+    color: #74685d;
+    font: 600 10px/1 var(--font-mono);
+}
+
+.cta-fit-note__rows i {
+    flex: 1;
+    height: 1px;
+    background: rgba(90, 75, 60, .18);
+}
+
+.cta-fit-note__rows b {
+    color: #2d251f;
+    font-weight: 700;
+}
+
+.cta-fit-note__footer {
+    position: relative;
+    z-index: 1;
+    justify-content: space-between;
+    padding: 13px 4px 2px;
+    border-top: 1px solid rgba(90, 75, 60, .13);
+    color: #2d6a4f;
+    font: 700 9px/1 var(--font-mono);
+    letter-spacing: .05em;
+    text-transform: uppercase;
+}
+
+.cta-fit-note__footer span {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.cta-fit-note__footer i {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #5ca779;
+}
+
+.lp-footer {
+    padding: 0;
+    border-top: 1px solid rgba(255, 255, 255, .08);
+    background: #171411;
+}
+
+.lp-footer__inner {
+    width: min(100% - 48px, 1120px);
+    max-width: 1120px;
+    min-height: 82px;
+    padding: 0;
+}
+
+.lp-footer .brand {
+    gap: 9px;
+    color: rgba(255, 250, 242, .84);
+    font: 600 14px/1 var(--font-sans);
+}
+
+.lp-footer .brand-mark {
+    background: rgba(241, 189, 118, .14);
+    color: #f1bd76;
+}
+
+.lp-footer__copy {
+    color: rgba(255, 250, 242, .42);
+    font-size: 11px;
+}
+
+@media (max-width: 760px) {
+    .lp-cta-band__inner {
+        grid-template-columns: 1fr;
+        gap: 40px;
+        width: min(100% - 32px, 540px);
+        padding-block: 70px;
+    }
+
+    .lp-cta-band .lp-h2 {
+        font-size: clamp(2.6rem, 12vw, 3.7rem);
+    }
+
+    .cta-fit-note {
+        width: min(100%, 360px);
+        margin-inline: auto;
+        transform: rotate(1.5deg);
+    }
+
+    .lp-footer__inner {
+        width: min(100% - 32px, 540px);
+        min-height: 0;
+        padding-block: 22px;
+        align-items: flex-start;
+    }
+
+    .lp-footer__copy {
+        line-height: 1.55;
+    }
+}
 
 /* ── RESPONSIVE ─────────────────────────────────────────────────────── */
 @media (min-width: 700px) {
@@ -2039,7 +2276,7 @@ img {
 }
 
 /* ═══════════════════════════════════════════════════════════════════
-   PHASE 3 ADDENDUM — Capture & Landmark Correction
+   PHASE 3 ADDENDUM   Capture & Landmark Correction
    ═══════════════════════════════════════════════════════════════════ */
 
 /* ── FRAMING GUIDE OVERLAY ──────────────────────────────────────────── */
@@ -2072,7 +2309,7 @@ img {
     pointer-events: none;
 }
 
-/* Corner tick marks — brass colored, ruler motif */
+/* Corner tick marks   brass colored, ruler motif */
 .capture-stage__corners {
     position: absolute;
     inset: 16px;
@@ -2161,9 +2398,9 @@ img {
 /* ── LIVE GUIDANCE CHIP (WebSocket feedback) ───────────────────────── */
 /*
   Three visual states:
-    ok      — brass color, checkmark — "Good position"
-    adjust  — warning amber, arrow icon
-    error   — danger red, alert icon
+    ok        brass color, checkmark   "Good position"
+    adjust    warning amber, arrow icon
+    error     danger red, alert icon
   Chips are absolutely positioned over the camera stage, top center.
   ⚠ ASSUMPTION: WS message shape = { status: 'ok'|'adjust'|'error', message: string }
 */
@@ -2220,7 +2457,7 @@ img {
 /* ── VALIDATION REJECTION CARD ──────────────────────────────────────── */
 /*
   Shown in place of the banner when a photo fails validation.
-  Specific, actionable — "what to fix" not "sorry."
+  Specific, actionable   "what to fix" not "sorry."
 */
 .validation-reject {
     display: flex;
@@ -2251,9 +2488,9 @@ img {
 /* ── LANDMARK DOTS ──────────────────────────────────────────────────── */
 /*
   Three tiers, all tied to Phase 1 semantic colors:
-    HIGH   (>= 0.75): success green  — auto-accepted
-    MEDIUM (0.45-0.75): brass amber  — accepted, light review suggested
-    LOW    (< 0.45): danger red      — needs correction, pulsing ring
+    HIGH   (>= 0.75): success green    auto-accepted
+    MEDIUM (0.45-0.75): brass amber    accepted, light review suggested
+    LOW    (< 0.45): danger red        needs correction, pulsing ring
 
   Selected dot: expands + gets a white halo + brass outer ring
 */
@@ -2292,7 +2529,7 @@ img {
 /* ── DRAG PAD (Phase 3 flagship UX) ────────────────────────────────── */
 /*
   Appears at bottom of screen when a landmark is selected.
-  Completely decoupled from the photo — eliminates thumb occlusion.
+  Completely decoupled from the photo   eliminates thumb occlusion.
   
   The pad has:
   - A draggable thumb circle (max travel: 44px radius)
@@ -2354,7 +2591,7 @@ img {
     touch-action: none;
 }
 
-/* Tick-mark ring around joystick — ruler motif, radial version */
+/* Tick-mark ring around joystick   ruler motif, radial version */
 .drag-pad__track {
     position: absolute;
     inset: 0;
@@ -2475,7 +2712,7 @@ img {
 /*
   Appears above the selected point in the review image.
   Shows 3x zoom of the area under the point.
-  Does not follow the dragging thumb — stays fixed over the photo point
+  Does not follow the dragging thumb   stays fixed over the photo point
   so the user can see exactly where the point is landing.
 */
 .loupe {
@@ -2519,7 +2756,7 @@ img {
 
 /* ── REVIEW IMAGE ZONE ──────────────────────────────────────────────── */
 /*
-  Overlay for the review image — the interaction zone where
+  Overlay for the review image   the interaction zone where
   SVG points are rendered. Positioned precisely over the img.
 */
 .review-photo-wrap {
@@ -2685,13 +2922,13 @@ img {
 /* Inherits .network-banner from Phase 1 */
 
 /* ═══════════════════════════════════════════════════════════════════
-   PHASE 4 — Landing Page Hero Redesign
+   PHASE 4   Landing Page Hero Redesign
    
    Palette (self-contained, landing-specific):
-     --lp-ink:        #1A1916  (warm graphite — tailor's notebook)
+     --lp-ink:        #1A1916  (warm graphite   tailor's notebook)
      --lp-canvas:     #F5F0E8  (aged drafting paper)
-     --lp-brass:      #C8852A  (measuring tape brass — Phase 1 accent)
-     --lp-muted:      #7C7165  (warm ash — secondary text)
+     --lp-brass:      #C8852A  (measuring tape brass   Phase 1 accent)
+     --lp-muted:      #7C7165  (warm ash   secondary text)
      --lp-border:     rgba(90,75,60,0.18)  (subtle warm rule)
      --lp-steel:      #8899A6  (dimension line blue-gray)
    
@@ -2832,7 +3069,7 @@ img {
 .lp-h1 em {
     font-style: italic;
     color: var(--lp-brass);
-    /* Italic Cormorant Garamond has extreme elegance — the contrast
+    /* Italic Cormorant Garamond has extreme elegance   the contrast
      between the roman "Your tape measure," and the italic "reimagined."
      mirrors the product's tension between craft heritage and software */
 }
@@ -2853,7 +3090,7 @@ img {
     margin-bottom: var(--space-10);
 }
 
-/* Primary CTA — brass fill */
+/* Primary CTA */
 .lp-cta-primary {
     display: inline-flex;
     align-items: center;
@@ -2864,34 +3101,60 @@ img {
     color: var(--lp-canvas);
     border-radius: var(--radius-md);
     font-family: var(--font-sans);
-    font-size: var(--text-sm);
-    font-weight: 700;
+    font-size: var(--text-base);
+    font-weight: 600;
     letter-spacing: 0.01em;
     text-decoration: none;
-    border: none;
+    border: 1px solid transparent;
     cursor: pointer;
-    transition: background 200ms ease, transform 160ms ease, box-shadow 200ms ease;
-    box-shadow: 0 4px 20px rgba(26, 25, 22, 0.22);
+    position: relative;
+    overflow: hidden;
+    transition: all 250ms cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 4px 14px rgba(26, 25, 22, 0.15);
+}
+
+.lp-cta-primary::after {
+    content: '';
+    position: absolute;
+    inset: 3px;
+    border: 1px dashed rgba(255, 255, 255, 0.4);
+    border-radius: calc(var(--radius-md) - 3px);
+    opacity: 0;
+    pointer-events: none;
+    transform: scale(0.98);
+    transition: opacity 250ms ease, transform 250ms cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .lp-cta-primary:hover {
-    background: var(--lp-brass);
-    transform: translateY(-1px);
-    box-shadow: 0 8px 28px rgba(200, 133, 42, 0.30);
+    background: var(--lp-ink);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(26, 25, 22, 0.25);
+}
+
+.lp-cta-primary:hover::after {
+    opacity: 1;
+    transform: scale(1);
 }
 
 .lp-cta-primary:active {
-    transform: none;
+    transform: translateY(0);
 }
 
 .lp-cta-primary--inverse {
     background: var(--lp-canvas);
     color: var(--lp-ink);
+    border: 1px solid rgba(28, 25, 23, 0.1);
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.05);
+}
+
+.lp-cta-primary--inverse::after {
+    border-color: rgba(28, 25, 23, 0.4);
 }
 
 .lp-cta-primary--inverse:hover {
-    background: var(--lp-brass);
-    color: var(--lp-canvas);
+    background: var(--lp-canvas);
+    border-color: rgba(28, 25, 23, 0.2);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
 }
 
 .lp-cta-sub {
@@ -3028,7 +3291,7 @@ img {
 }
 
 /* ── RULER STRIP ─────────────────────────────────────────────────────── */
-/* Horizontal strip of repeating millimeter tick marks — signature element */
+/* Horizontal strip of repeating millimeter tick marks   signature element */
 .lp-ruler-strip {
     width: 100%;
     height: 4px;
@@ -3330,10 +3593,10 @@ img {
 
 
 /* ════════════════════════════════════════════════════════════════════
-   Measora Landing Page — tokens
+   Measora Landing Page   tokens
    NOTE: These values are reconstructed from your screenshots since I
    don't have your original CSS file. If your real design-system tokens
-   (from Phase 1) differ, swap these variables for your existing ones —
+   (from Phase 1) differ, swap these variables for your existing ones  
    everything below references them by name, so it will still work.
    ════════════════════════════════════════════════════════════════════ */
 
@@ -3355,7 +3618,7 @@ img {
     --text-sm: 0.875rem;
     --text-base: 1rem;
 
-    /* Shared button metrics — this is the fix for issue #2 */
+    /* Shared button metrics   this is the fix for issue #2 */
     --btn-height: 3.25rem;
     --btn-padding-x: 1.75rem;
     --btn-radius: var(--radius-md);
@@ -3365,7 +3628,7 @@ img {
 }
 
 /* ════════════════════════════════════════════════════════════════════
-   NAV — Fix #1: Sign in / Start free now share one base class so
+   NAV   Fix #1: Sign in / Start free now share one base class so
    height, padding, radius, and font-weight are identical. Only the
    fill/border/text-color differ between variants.
    ════════════════════════════════════════════════════════════════════ */
@@ -3406,7 +3669,7 @@ img {
     gap: 0.75rem;
 }
 
-/* Shared base — every nav button gets identical box geometry */
+/* Shared base   every nav button gets identical box geometry */
 .lp-nav-btn {
     display: inline-flex;
     align-items: center;
@@ -3450,7 +3713,7 @@ img {
 }
 
 /* ════════════════════════════════════════════════════════════════════
-   BUTTONS (CTA) — Fix #2: one padding/height formula for every button
+   BUTTONS (CTA)   Fix #2: one padding/height formula for every button
    using .button, regardless of label length. Width is intrinsic
    (hugs content) but the *formula* generating that width never changes,
    so buttons never look randomly sized relative to each other.
@@ -3477,25 +3740,7 @@ img {
     transform: translateY(1px);
 }
 
-.lp-cta-primary {
-    background: var(--color-ink);
-    color: var(--color-canvas);
-}
 
-.lp-cta-primary:hover {
-    background: var(--color-brass);
-    color: #1C1917 !important;
-}
-
-.lp-cta-primary--inverse {
-    background: var(--color-canvas);
-    color: var(--color-ink);
-}
-
-.lp-cta-primary--inverse:hover {
-    background: var(--color-brass);
-    color: #1C1917 !important;
-}
 
 .lp-cta-sub {
     margin-top: 0.75rem;
@@ -3591,7 +3836,7 @@ img {
 }
 
 /* ════════════════════════════════════════════════════════════════════
-   HERO VISUAL — Fix #3: chips live in a reserved column inside the
+   HERO VISUAL   Fix #3: chips live in a reserved column inside the
    panel's own padding box. They can never extend past the panel edge
    because they're laid out by flex/grid, not absolute-positioned past
    the image bounds. On mobile the column drops below the image as a
@@ -3693,7 +3938,7 @@ img {
 }
 
 /* ════════════════════════════════════════════════════════════════════
-   RESPONSIVE — hero stacks; chips convert from a side column to a
+   RESPONSIVE   hero stacks; chips convert from a side column to a
    horizontal legend row under the image, so nothing ever overlaps or
    clips on small screens.
    ════════════════════════════════════════════════════════════════════ */
@@ -6377,7 +6622,10 @@ img {
 }
 
 /* Final CTA layout override: keep the offer and fit note balanced at desktop. */
-.lp-cta-band { min-height: 640px; }
+.lp-cta-band {
+    min-height: 640px;
+}
+
 .lp-cta-band__inner {
     display: grid;
     grid-template-columns: minmax(0, 1.12fr) minmax(300px, .72fr);
@@ -6390,11 +6638,29 @@ img {
     padding: 76px 0;
     text-align: left;
 }
-.lp-cta-band__copy { width: min(100%, 570px); }
-.lp-cta-band .lp-eyebrow--inverse { justify-content: flex-start; }
-.lp-cta-band .lp-h2 { margin-inline: 0; text-align: left; }
-.lp-cta-band__sub { margin-inline: 0; text-align: left; }
-.lp-cta-band__proof { justify-content: flex-start; }
+
+.lp-cta-band__copy {
+    width: min(100%, 570px);
+}
+
+.lp-cta-band .lp-eyebrow--inverse {
+    justify-content: flex-start;
+}
+
+.lp-cta-band .lp-h2 {
+    margin-inline: 0;
+    text-align: left;
+}
+
+.lp-cta-band__sub {
+    margin-inline: 0;
+    text-align: left;
+}
+
+.lp-cta-band__proof {
+    justify-content: flex-start;
+}
+
 .cta-fit-note {
     grid-column: 2;
     width: min(100%, 340px);
@@ -6403,11 +6669,21 @@ img {
     align-self: center;
     transform: rotate(1.5deg);
 }
-.lp-footer { background: #171411; }
-.lp-footer__inner { width: min(100% - 64px, 1180px); max-width: 1180px; }
+
+.lp-footer {
+    background: #171411;
+}
+
+.lp-footer__inner {
+    width: min(100% - 64px, 1180px);
+    max-width: 1180px;
+}
 
 @media (max-width: 800px) {
-    .lp-cta-band { min-height: 0; }
+    .lp-cta-band {
+        min-height: 0;
+    }
+
     .lp-cta-band__inner {
         grid-template-columns: 1fr;
         width: min(100% - 32px, 540px);
@@ -6416,10 +6692,466 @@ img {
         padding: 72px 0;
         text-align: center;
     }
+
     .lp-cta-band .lp-eyebrow--inverse,
-    .lp-cta-band__proof { justify-content: center; }
+    .lp-cta-band__proof {
+        justify-content: center;
+    }
+
     .lp-cta-band .lp-h2,
-    .lp-cta-band__sub { margin-inline: auto; text-align: center; }
-    .cta-fit-note { grid-column: 1; justify-self: center; transform: none; }
-    .lp-footer__inner { width: min(100% - 32px, 540px); }
+    .lp-cta-band__sub {
+        margin-inline: auto;
+        text-align: center;
+    }
+
+    .cta-fit-note {
+        grid-column: 1;
+        justify-self: center;
+        transform: none;
+    }
+
+    .lp-footer__inner {
+        width: min(100% - 32px, 540px);
+    }
+}
+
+/* ============================================================
+   Companion CSS for the updated LandingPage.jsx
+   Merge into your existing stylesheet. Uses the same custom
+   properties your file already references (--color-canvas,
+   --color-ink, --color-ink-muted, --color-brass, --space-*,
+   --text-lg). Adjust hex fallbacks below if your tokens differ.
+   ============================================================ */
+
+:root {
+    /* Fallbacks only � remove if these already exist in your theme */
+    --color-walnut: #4A3423;
+    --color-hairline: rgba(42, 31, 22, 0.12);
+}
+
+/* -- Hero (moved from inline styles) ------------------------- */
+
+.lp-hero-section {
+    position: relative;
+    width: 100%;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    background-size: cover;
+    background-position: center center;
+    background-repeat: no-repeat;
+}
+
+.lp-hero-section__scrim {
+    position: absolute;
+    inset: 0;
+    background-color: var(--color-canvas);
+    opacity: 0.3;
+    z-index: 0;
+}
+
+.lp-hero-section__fade {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 120px;
+    background: linear-gradient(to bottom, transparent 0%, var(--color-canvas) 100%);
+    z-index: 0;
+}
+
+.lp-hero {
+    position: relative;
+    z-index: 10;
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: center;
+    text-align: center;
+    padding: var(--space-6, 3rem) var(--space-4, 1.5rem);
+    gap: var(--space-6, 3rem);
+}
+
+.lp-hero__content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--space-4, 1.5rem);
+    margin: auto 0;
+}
+
+.lp-hero__eyebrow {
+    justify-content: center;
+    color: var(--color-ink);
+}
+
+.lp-hero__eyebrow .lp-eyebrow__dot {
+    background-color: var(--color-brass);
+}
+
+.lp-hero__title {
+    font-size: clamp(3rem, 7vw, 5rem);
+    line-height: 1.05;
+    margin: 0;
+    color: var(--color-ink);
+}
+
+.lp-hero__lead {
+    max-width: 600px;
+    margin: 0 auto;
+    font-size: var(--text-lg, 1.15rem);
+    color: var(--color-ink-muted);
+}
+
+.lp-hero__actions {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-top: var(--space-2, 0.75rem);
+}
+
+.lp-cta-sub {
+    margin-top: var(--space-3, 1rem);
+    color: var(--color-ink-muted);
+    font-weight: 500;
+}
+
+/* -- Trust bar ------------------------------------------------ */
+
+.lp-trust-bar {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: var(--space-6, 2.5rem);
+    list-style: none;
+    margin: 0;
+    padding: var(--space-4, 1.5rem) var(--space-5, 2rem);
+    border-radius: 16px;
+    background: rgba(255, 255, 255, 0.55);
+    backdrop-filter: blur(6px);
+    border: 1px solid var(--color-hairline);
+    position: relative;
+    z-index: 10;
+}
+
+.lp-trust-bar__item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-width: 96px;
+}
+
+.lp-trust-bar__value {
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: var(--color-walnut);
+    line-height: 1;
+}
+
+.lp-trust-bar__label {
+    margin-top: 0.35rem;
+    font-size: 0.8rem;
+    color: var(--color-ink-muted);
+    max-width: 130px;
+    text-align: center;
+}
+
+/* -- Privacy section ------------------------------------------ */
+
+.lp-privacy {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--space-5, 2rem);
+}
+
+.lp-privacy__icon {
+    flex-shrink: 0;
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--color-canvas);
+    border: 1px solid var(--color-hairline);
+    color: var(--color-walnut);
+}
+
+.lp-privacy__lead {
+    color: var(--color-ink-muted);
+    font-size: var(--text-lg, 1.1rem);
+    max-width: 60ch;
+}
+
+.lp-privacy__list {
+    list-style: none;
+    margin: var(--space-4, 1.5rem) 0 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+}
+
+.lp-privacy__list li {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--color-ink);
+}
+
+.lp-privacy__list svg {
+    color: var(--color-brass);
+    flex-shrink: 0;
+}
+
+@media (max-width: 640px) {
+    .lp-privacy {
+        flex-direction: column;
+    }
+}
+
+/* -- Testimonials --------------------------------------------- */
+
+.testimonial-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: var(--space-4, 1.5rem);
+    margin-top: var(--space-5, 2rem);
+}
+
+.testimonial-card {
+    margin: 0;
+    padding: var(--space-4, 1.5rem);
+    border-radius: 14px;
+    background: var(--color-canvas);
+    border: 1px solid var(--color-hairline);
+}
+
+.testimonial-card blockquote {
+    margin: 0 0 var(--space-3, 1rem);
+    font-size: 1.05rem;
+    line-height: 1.5;
+    color: var(--color-ink);
+}
+
+.testimonial-card figcaption {
+    display: flex;
+    flex-direction: column;
+    font-size: 0.85rem;
+}
+
+.testimonial-card__name {
+    font-weight: 600;
+    color: var(--color-walnut);
+}
+
+.testimonial-card__detail {
+    color: var(--color-ink-muted);
+}
+
+/* -- FAQ ------------------------------------------------------ */
+
+.lp-section__inner--narrow {
+    max-width: 720px;
+}
+
+.faq-list {
+    margin: var(--space-5, 2rem) 0 0;
+    border-top: 1px solid var(--color-hairline);
+}
+
+.faq-item {
+    border-bottom: 1px solid var(--color-hairline);
+}
+
+.faq-item__trigger {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-3, 1rem);
+    padding: var(--space-4, 1.25rem) 0;
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 1.05rem;
+    font-weight: 600;
+    color: var(--color-ink);
+    text-align: left;
+}
+
+.faq-item__trigger:focus-visible {
+    outline: 2px solid var(--color-brass);
+    outline-offset: 4px;
+}
+
+.faq-item__chevron {
+    flex-shrink: 0;
+    transition: transform 0.2s ease;
+    color: var(--color-ink-muted);
+}
+
+.faq-item__trigger[aria-expanded='true'] .faq-item__chevron {
+    transform: rotate(180deg);
+}
+
+.faq-item__panel {
+    padding: 0 0 var(--space-4, 1.25rem);
+    color: var(--color-ink-muted);
+    line-height: 1.6;
+}
+
+.faq-item__panel p {
+    margin: 0;
+    max-width: 65ch;
+}
+
+/* -- Footer links --------------------------------------------- */
+
+.lp-footer__links {
+    display: flex;
+    gap: var(--space-4, 1.5rem);
+    font-size: 0.9rem;
+}
+
+.lp-footer__links a {
+    color: var(--color-ink-muted);
+    text-decoration: none;
+}
+
+.lp-footer__links a:hover,
+.lp-footer__links a:focus-visible {
+    color: var(--color-walnut);
+    text-decoration: underline;
+}
+
+.brand-mark {
+    width: 30px;
+    height: 30px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* -- Global accessibility floor ------------------------------- */
+
+@media (prefers-reduced-motion: reduce) {
+    * {
+        animation-duration: 0.001ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.001ms !important;
+        scroll-behavior: auto !important;
+    }
+}
+
+a:focus-visible,
+button:focus-visible {
+    outline: 2px solid var(--color-brass);
+    outline-offset: 3px;
+}
+
+/* -- Enhanced Bento Animations ------------------------------- */
+
+@keyframes pulse-dot {
+
+    0%,
+    100% {
+        transform: scale(1);
+        opacity: 1;
+        box-shadow: 0 0 0 0 rgba(130, 202, 157, 0.4);
+    }
+
+    50% {
+        transform: scale(1.2);
+        opacity: 0.8;
+        box-shadow: 0 0 8px 2px rgba(130, 202, 157, 0);
+    }
+}
+
+.capture-status i {
+    animation: pulse-dot 2s infinite ease-in-out;
+}
+
+@keyframes landmark-pulse {
+    0% {
+        transform: scale(1);
+        box-shadow: 0 0 0 0 rgba(200, 133, 42, 0.4);
+    }
+
+    50% {
+        transform: scale(1.3);
+        box-shadow: 0 0 10px 2px rgba(200, 133, 42, 0);
+    }
+
+    100% {
+        transform: scale(1);
+        box-shadow: 0 0 0 0 rgba(200, 133, 42, 0);
+    }
+}
+
+.bento-item:hover .landmark-point {
+    animation: landmark-pulse 1.5s infinite;
+}
+
+.bento-item:hover .landmark-point:nth-child(1) {
+    animation-delay: 0.1s;
+}
+
+.bento-item:hover .landmark-point:nth-child(2) {
+    animation-delay: 0.2s;
+}
+
+.bento-item:hover .landmark-point:nth-child(3) {
+    animation-delay: 0.3s;
+}
+
+.bento-item:hover .landmark-point:nth-child(4) {
+    animation-delay: 0.4s;
+}
+
+.bento-item:hover .landmark-point:nth-child(5) {
+    animation-delay: 0.5s;
+}
+
+.bento-item {
+    transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.4s cubic-bezier(0.4, 0, 0.2, 1), border-color 0.4s ease;
+}
+
+.bento-item:hover {
+    transform: translateY(-8px) scale(1.02);
+    box-shadow: 0 32px 64px rgba(26, 25, 22, 0.15), 0 4px 12px rgba(26, 25, 22, 0.08);
+}
+
+.bento-item--dark:hover {
+    box-shadow: 0 32px 64px rgba(0, 0, 0, 0.4), 0 4px 12px rgba(0, 0, 0, 0.2);
+    border-color: rgba(200, 133, 42, 0.6);
+}
+
+.bento-item__icon {
+    transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.bento-item:hover .bento-item__icon {
+    transform: scale(1.15) rotate(-5deg);
+    color: var(--lp-brass);
+}
+
+@keyframes progress-fill {
+    from {
+        width: 0;
+    }
+}
+
+.bento-item:hover .measure-preview-row i {
+    animation: progress-fill 1s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+.bento-score-ring {
+    transition: transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.5s ease;
+}
+
+.bento-item:hover .bento-score-ring {
+    transform: scale(1.1);
+    box-shadow: inset 0 0 20px rgba(200, 133, 42, 0.2), 0 0 30px rgba(200, 133, 42, 0.15);
 }

@@ -33,16 +33,16 @@ const FIT_OPTIONS = [
   },
 ];
 
-/* ── Silhouette SVGs — shirt cross-section showing fabric gap ───────── */
+/* ── Silhouette SVGs   shirt cross-section showing fabric gap ───────── */
 function SlimSilhouette() {
-  /* Body outline close, fabric almost touching — minimal gap */
+  /* Body outline close, fabric almost touching   minimal gap */
   return (
     <svg width="40" height="72" viewBox="0 0 40 72" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" aria-hidden="true">
       {/* Body */}
       <ellipse cx="20" cy="14" rx="7" ry="8" strokeDasharray="2 2" opacity="0.5" />
-      {/* Torso — slim */}
+      {/* Torso   slim */}
       <path d="M13 22 Q10 36 11 56 L14 56 L14 36 L20 38 L26 36 L26 56 L29 56 Q30 36 27 22" />
-      {/* Fabric line — very close to body */}
+      {/* Fabric line   very close to body */}
       <path d="M11 22 Q8 36 9 58" opacity="0.35" strokeWidth="1" />
       <path d="M29 22 Q32 36 31 58" opacity="0.35" strokeWidth="1" />
       {/* Shoulder measurement tick */}
@@ -59,7 +59,7 @@ function RegularSilhouette() {
     <svg width="44" height="72" viewBox="0 0 44 72" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" aria-hidden="true">
       <ellipse cx="22" cy="14" rx="7" ry="8" strokeDasharray="2 2" opacity="0.5" />
       <path d="M15 22 Q12 36 13 56 L16 56 L16 36 L22 38 L28 36 L28 56 L31 56 Q32 36 29 22" />
-      {/* Fabric — modest gap */}
+      {/* Fabric   modest gap */}
       <path d="M12 22 Q8 36 9 58" opacity="0.35" strokeWidth="1" />
       <path d="M32 22 Q36 36 35 58" opacity="0.35" strokeWidth="1" />
       <line x1="12" y1="68" x2="32" y2="68" strokeWidth="0.8" opacity="0.4" />
@@ -70,12 +70,12 @@ function RegularSilhouette() {
 }
 
 function RelaxedSilhouette() {
-  /* Noticeable gap — fabric billows outward */
+  /* Noticeable gap   fabric billows outward */
   return (
     <svg width="52" height="72" viewBox="0 0 52 72" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" aria-hidden="true">
       <ellipse cx="26" cy="14" rx="7" ry="8" strokeDasharray="2 2" opacity="0.5" />
       <path d="M19 22 Q16 36 17 56 L20 56 L20 36 L26 38 L32 36 L32 56 L35 56 Q36 36 33 22" />
-      {/* Fabric — significant drape */}
+      {/* Fabric   significant drape */}
       <path d="M14 21 Q8 34 7 58" opacity="0.35" strokeWidth="1" />
       <path d="M38 21 Q44 34 45 58" opacity="0.35" strokeWidth="1" />
       <line x1="9" y1="68" x2="43" y2="68" strokeWidth="0.8" opacity="0.4" />
@@ -381,7 +381,7 @@ export default function SessionConfig() {
               <p className="page-copy">This is optional. Your fitting works either way.</p>
             </div>
 
-            {/* What gets saved — plain language */}
+            {/* What gets saved   plain language */}
             <div className="consent-card">
               <div className="consent-card__header">
                 <span className="consent-card__icon">
@@ -396,11 +396,11 @@ export default function SessionConfig() {
                 <li>Your height ({heightCm} cm)</li>
                 <li>Your body measurements in centimetres</li>
                 <li>Your fit preference ({fit})</li>
-                <li>Nothing from your photos — photos aren't stored</li>
+                <li>Nothing from your photos   photos aren't stored</li>
               </ul>
             </div>
 
-            {/* Choice — privacy first: "no" is pre-selected */}
+            {/* Choice   privacy first: "no" is pre-selected */}
             <div className="consent-options" role="radiogroup" aria-label="Save preference">
               <label className="consent-option">
                 <input
@@ -429,7 +429,7 @@ export default function SessionConfig() {
               </label>
             </div>
 
-            {/* Auth error — shown if Supabase anonymous auth is disabled */}
+            {/* Auth error   shown if Supabase anonymous auth is disabled */}
             {authError && (
               <Banner
                 type="error"

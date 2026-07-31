@@ -1,7 +1,7 @@
 """
-POST /v1/sessions/{session_id}/footwear/frames  — upload foot photos
-POST /v1/sessions/{session_id}/footwear/measure — trigger foot measurement job
-GET  /v1/sessions/{session_id}/footwear/measure — retrieve foot measurements
+POST /v1/sessions/{session_id}/footwear/frames    upload foot photos
+POST /v1/sessions/{session_id}/footwear/measure   trigger foot measurement job
+GET  /v1/sessions/{session_id}/footwear/measure   retrieve foot measurements
 REQ-3B0-01 → REQ-3B0-06
 """
 import os

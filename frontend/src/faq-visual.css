@@ -1,0 +1,144 @@
+/* faq-visual.css */
+
+.lp-faq-split {
+  display: flex;
+  align-items: center;
+  gap: 4rem;
+  width: 100%;
+}
+
+.lp-faq-split__visual {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.lp-faq-split__content {
+  flex: 1;
+  width: 100%;
+  max-width: 600px;
+}
+
+/* Ensure the FAQ list aligns nicely when split */
+.lp-faq-split__content .faq-list {
+  margin-top: 2rem;
+}
+
+.faq-visual-container {
+  width: 320px;
+  height: 320px;
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  perspective: 1000px;
+}
+
+.faq-visual {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  transform-style: preserve-3d;
+  animation: floatFAQ 6s ease-in-out infinite;
+}
+
+.fv-q-card {
+  position: absolute;
+  top: 50px;
+  left: 60px;
+  width: 140px;
+  height: 140px;
+  background: rgba(255, 255, 255, 0.5);
+  border: 1px solid var(--color-hairline, rgba(42, 31, 22, 0.12));
+  border-radius: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 20px 40px rgba(0,0,0,0.06);
+  backdrop-filter: blur(12px);
+  color: var(--color-ink-muted, #6B5D4F);
+  transition: transform 0.6s cubic-bezier(0.2, 0.8, 0.2, 1);
+  z-index: 2;
+}
+
+.fv-q-card svg {
+  width: 56px;
+  height: 56px;
+  stroke-width: 1.5;
+}
+
+.fv-a-card {
+  position: absolute;
+  bottom: 50px;
+  right: 60px;
+  width: 110px;
+  height: 110px;
+  background: var(--color-canvas, #F5EFE6);
+  border: 1px solid rgba(176, 141, 87, 0.3);
+  border-radius: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 10px 30px rgba(176, 141, 87, 0.1);
+  color: var(--color-brass, #B08D57);
+  transition: transform 0.7s cubic-bezier(0.2, 0.8, 0.2, 1), opacity 0.7s ease, box-shadow 0.7s ease;
+  z-index: 1;
+  opacity: 0.4;
+  transform: translate(-40px, -40px) scale(0.85);
+}
+
+.fv-a-card svg {
+  width: 44px;
+  height: 44px;
+  stroke-width: 2;
+}
+
+/* Hover effect applied on the whole section */
+.faq-section:hover .fv-q-card {
+  transform: translate(-15px, -15px) rotate(-6deg);
+}
+
+.faq-section:hover .fv-a-card {
+  transform: translate(15px, 15px) rotate(8deg) scale(1.05);
+  opacity: 1;
+  box-shadow: 0 24px 48px rgba(176, 141, 87, 0.25);
+}
+
+/* Dots decoration */
+.fv-dots {
+  position: absolute;
+  top: 40px;
+  right: 40px;
+  display: flex;
+  gap: 6px;
+  opacity: 0;
+  transition: opacity 0.5s ease 0.2s, transform 0.5s cubic-bezier(0.2, 0.8, 0.2, 1) 0.2s;
+  transform: translateY(10px);
+}
+
+.fv-dots span {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--color-ink-muted, #6B5D4F);
+}
+
+.faq-section:hover .fv-dots {
+  opacity: 0.5;
+  transform: translateY(0);
+}
+
+/* Floating animation */
+@keyframes floatFAQ {
+  0% { transform: translateY(0px); }
+  50% { transform: translateY(-12px); }
+  100% { transform: translateY(0px); }
+}
+
+@media (max-width: 800px) {
+  .lp-faq-split {
+    flex-direction: column;
+    gap: 2rem;
+  }
+}

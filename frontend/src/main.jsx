@@ -11,7 +11,7 @@ import App from './App.jsx';
 // MetaMask (and some other wallet extensions) inject inpage.js / contentscript.js
 // into every page and log "Failed to connect to MetaMask" unhandled rejections
 // when the extension's background service worker isn't running. These errors come
-// entirely from the extension — not from any Measora code — and cannot be fixed
+// entirely from the extension   not from any Measora code   and cannot be fixed
 // here. The filter below silently drops them so they don't pollute the console
 // or trigger Sentry/error-monitoring alerts. It is intentionally narrow and only
 // suppresses strings that uniquely identify MetaMask extension errors.

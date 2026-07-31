@@ -1,7 +1,7 @@
 """
-POST   /v1/admin/brands                           — add a new brand
-PUT    /v1/admin/brands/{brand_id}/size-charts    — update brand size charts
-DELETE /v1/admin/brands/{brand_id}                — remove a brand
+POST   /v1/admin/brands                             add a new brand
+PUT    /v1/admin/brands/{brand_id}/size-charts      update brand size charts
+DELETE /v1/admin/brands/{brand_id}                  remove a brand
 REQ-400-07, REQ-NFR-08
 """
 import json

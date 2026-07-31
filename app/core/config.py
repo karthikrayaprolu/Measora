@@ -19,7 +19,7 @@ class Settings(BaseSettings):
     UPLOAD_DIR: str = "./uploads"
     MAX_UPLOAD_SIZE_MB: int = 20
 
-    # CORS — comma-separated origins; parsed in main.py
+    # CORS   comma-separated origins; parsed in main.py
     ALLOWED_ORIGINS: str = "http://localhost:5173,http://localhost:3000,capacitor://localhost"
 
     # Base URL of the deployed frontend (used for shareable result links)

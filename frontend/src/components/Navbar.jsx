@@ -51,12 +51,12 @@ export function Navbar({ variant = 'solid', inApp = false }) {
 
         {!user && (
           <div className="navbar-auth">
-            {/* <Link to="/login" className="lp-nav-btn lp-nav-btn--ghost">Sign in</Link> */}
+
             <Link to="/login" className="lp-nav-btn lp-nav-btn--filled">Start free</Link>
           </div>
         )}
 
-        {/* Logged in — avatar button + dropdown */}
+        {/* Logged in   avatar button + dropdown */}
         {user && (
           <div style={{ position: 'relative' }} ref={menuRef}>
             <button

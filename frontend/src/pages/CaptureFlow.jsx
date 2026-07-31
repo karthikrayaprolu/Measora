@@ -1,10 +1,10 @@
 /**
- * CaptureFlow.jsx — Phase 3 Redesign
+ * CaptureFlow.jsx   Phase 3 Redesign
  *
  * Captures front + side photos, validates them, then enters the
  * Landmark Correction screen.
  *
- * KEY UX DECISION — Drag Pad:
+ * KEY UX DECISION   Drag Pad:
  *   Landmark correction uses a spatially-decoupled "joystick pad"
  *   at the bottom of the screen (thumb-reachable zone) rather than
  *   direct-drag on the point. This eliminates thumb-occlusion and
@@ -232,11 +232,11 @@ export default function CaptureFlow() {
         resultType: CameraResultType.Uri,
         source: source
       });
-      
+
       const response = await fetch(image.webPath);
       const blob = await response.blob();
       const file = new File([blob], `photo_${pose}.jpg`, { type: blob.type });
-      
+
       uploadPhotoFlow(file, pose);
     } catch (e) {
       console.error('Camera cancelled or failed:', e);
@@ -357,9 +357,8 @@ export default function CaptureFlow() {
               Front
             </span>
             <div className="photo-pair__divider" aria-hidden="true" />
-            <span className={`photo-pair__step photo-pair__step--${
-              step > 4 || frames.B ? 'done' : step === 4 ? 'current' : 'future'
-            }`}>
+            <span className={`photo-pair__step photo-pair__step--${step > 4 || frames.B ? 'done' : step === 4 ? 'current' : 'future'
+              }`}>
               {frames.B && <CheckCircle2 size={12} aria-hidden="true" />}
               Side
             </span>
@@ -444,7 +443,7 @@ function Guide({ onContinue, animCls }) {
   const tips = [
     {
       title: 'Stand 2 metres away',
-      copy: 'Ask someone to hold the camera, or prop it up at chest height. Your full body — head to feet — must be visible in both photos, taken from the same distance.',
+      copy: 'Ask someone to hold the camera, or prop it up at chest height. Your full body   head to feet   must be visible in both photos, taken from the same distance.',
     },
     {
       title: 'Wear tight-fitting clothing',
@@ -576,16 +575,16 @@ function Capture({ pose, busy, rejectionError, onChoose, onCaptureNative, animCl
       <div className="capture-actions">
         {Capacitor.isNativePlatform() ? (
           <>
-            <button 
-              className="button button--primary button--full" 
-          onClick={() => onCaptureNative(pose, CameraSource.Camera)}
+            <button
+              className="button button--primary button--full"
+              onClick={() => onCaptureNative(pose, CameraSource.Camera)}
               disabled={busy}
             >
               <Camera size={19} aria-hidden="true" />
               {rejectionError ? 'Take photo again' : 'Open camera'}
             </button>
-            <button 
-              className="button button--outline button--full" 
+            <button
+              className="button button--outline button--full"
               onClick={() => onCaptureNative(pose, CameraSource.Photos)}
               disabled={busy}
             >
@@ -749,7 +748,7 @@ function Review({
 }
 
 /* ════════════════════════════════════════════════════════════════════
-   FrameReview — single photo with SVG landmark overlay
+   FrameReview   single photo with SVG landmark overlay
    ════════════════════════════════════════════════════════════════════ */
 function FrameReview({ pose, frame, selectedPoint, onSelectPoint, onDeselectPoint, onMovePoint, onConfirmPoint, onRetake, confirmedCriticalPoints }) {
   const imgRef = useRef(null);
@@ -788,18 +787,18 @@ function FrameReview({ pose, frame, selectedPoint, onSelectPoint, onDeselectPoin
         for (let j = i + 1; j < points.length; j++) {
           const p1 = points[i];
           const p2 = points[j];
-          
+
           const l1x = p1.x + p1.dx;
           const l1y = p1.y + p1.dy;
           const l2x = p2.x + p2.dx;
           const l2y = p2.y + p2.dy;
-          
+
           const dist = Math.hypot(l1x - l2x, l1y - l2y);
           if (dist < MIN_LABEL_DISTANCE_PX && dist > 0.001) {
             const push = (MIN_LABEL_DISTANCE_PX - dist) / 2;
             const nx = (l1x - l2x) / dist;
             const ny = (l1y - l2y) / dist;
-            
+
             p1.dx += nx * push;
             p1.dy += ny * push;
             p2.dx -= nx * push;
@@ -808,13 +807,13 @@ function FrameReview({ pose, frame, selectedPoint, onSelectPoint, onDeselectPoin
         }
       }
     }
-    
+
     points.forEach(p => {
       if (Math.abs(p.dx) > 0.1 || Math.abs(p.dy) > 0.1) {
         map.set(p.index, { dx: p.dx, dy: p.dy });
       }
     });
-    
+
     return map;
   }, [frame.landmarks, dimensions]);
 
@@ -830,7 +829,7 @@ function FrameReview({ pose, frame, selectedPoint, onSelectPoint, onDeselectPoin
     // Nearest neighbor
     let closestIdx = -1;
     let minDistance = Infinity;
-    
+
     frame.landmarks.forEach((p, i) => {
       const px = p.x * rect.width;
       const py = p.y * rect.height;
@@ -860,7 +859,7 @@ function FrameReview({ pose, frame, selectedPoint, onSelectPoint, onDeselectPoin
     const rect = imgRef.current.getBoundingClientRect();
     const x = (e.clientX - rect.left) / rect.width;
     const y = (e.clientY - rect.top) / rect.height;
-    
+
     const selectedIdx = selectedPoint?.pose === pose ? selectedPoint.index : null;
     if (selectedIdx !== null) {
       onMovePoint(pose, selectedIdx, x, y);
@@ -891,8 +890,8 @@ function FrameReview({ pose, frame, selectedPoint, onSelectPoint, onDeselectPoin
       </div>
 
       {/* Photo + SVG overlay */}
-      <div 
-        className="review-photo-wrap" 
+      <div
+        className="review-photo-wrap"
         ref={imgRef}
         onPointerDown={handlePointerDown}
         onPointerMove={handlePointerMove}
@@ -910,7 +909,7 @@ function FrameReview({ pose, frame, selectedPoint, onSelectPoint, onDeselectPoin
           {frame.landmarks.map((point, index) => {
             const isScaleCritical = SCALE_CRITICAL_POINTS.has(point.name);
             const isConfirmed = confirmedCriticalPoints?.has(`${pose}-${index}`);
-            
+
             // Override color if unconfirmed critical point
             let color = tierColor(point);
             if (isScaleCritical && !isConfirmed) {
@@ -918,7 +917,7 @@ function FrameReview({ pose, frame, selectedPoint, onSelectPoint, onDeselectPoin
             } else if (isScaleCritical && isConfirmed) {
               color = 'var(--color-success)';
             }
-            
+
             const selected = isSelected(index);
             const isLow = (point.tier === 'LOW') || (point.confidence ?? 1) < 0.45;
             const name = POINT_FRIENDLY_NAMES[point.name] || point.name;
@@ -1016,7 +1015,7 @@ function FrameReview({ pose, frame, selectedPoint, onSelectPoint, onDeselectPoin
           })}
         </svg>
 
-        {/* Loupe — shows above selected point while dragging */}
+        {/* Loupe   shows above selected point while dragging */}
         {selectedPt && imgRef.current && isDragging && dragCoords && (
           <Loupe
             point={{ x: dragCoords.x, y: dragCoords.y }}
@@ -1025,19 +1024,19 @@ function FrameReview({ pose, frame, selectedPoint, onSelectPoint, onDeselectPoin
           />
         )}
 
-        {/* Nudge Controls — shows when a point is selected but not dragging */}
+        {/* Nudge Controls   shows when a point is selected but not dragging */}
         {selectedPt && !isDragging && (
-          <NudgeControls 
-             point={selectedPt} 
-             dimensions={dimensions} 
-             onNudge={(dx, dy) => {
-               onMovePoint(pose, selectedIdx, selectedPt.x + dx/dimensions.width, selectedPt.y + dy/dimensions.height);
-             }}
-             onConfirm={() => {
-               if (SCALE_CRITICAL_POINTS.has(selectedPt.name)) onConfirmPoint();
-               onDeselectPoint();
-             }}
-             isCritical={SCALE_CRITICAL_POINTS.has(selectedPt.name)}
+          <NudgeControls
+            point={selectedPt}
+            dimensions={dimensions}
+            onNudge={(dx, dy) => {
+              onMovePoint(pose, selectedIdx, selectedPt.x + dx / dimensions.width, selectedPt.y + dy / dimensions.height);
+            }}
+            onConfirm={() => {
+              if (SCALE_CRITICAL_POINTS.has(selectedPt.name)) onConfirmPoint();
+              onDeselectPoint();
+            }}
+            isCritical={SCALE_CRITICAL_POINTS.has(selectedPt.name)}
           />
         )}
       </div>
@@ -1046,7 +1045,7 @@ function FrameReview({ pose, frame, selectedPoint, onSelectPoint, onDeselectPoin
 }
 
 /* ════════════════════════════════════════════════════════════════════
-   Loupe — 3× magnifier above the selected point
+   Loupe   3× magnifier above the selected point
    ════════════════════════════════════════════════════════════════════ */
 function Loupe({ point, imageUrl, containerRef }) {
   const container = containerRef.current;
@@ -1071,7 +1070,7 @@ function Loupe({ point, imageUrl, containerRef }) {
 
   // Offset the loupe 80px above the touch point
   const loupeY = py - 80;
-  const displayY = loupeY < HALF ? py + 80 : loupeY; 
+  const displayY = loupeY < HALF ? py + 80 : loupeY;
 
   return (
     <div
@@ -1092,14 +1091,14 @@ function Loupe({ point, imageUrl, containerRef }) {
 }
 
 /* ════════════════════════════════════════════════════════════════════
-   NudgeControls — D-pad for pixel-perfect adjustments
+   NudgeControls   D-pad for pixel-perfect adjustments
    ════════════════════════════════════════════════════════════════════ */
 function NudgeControls({ point, dimensions, onNudge, onConfirm, isCritical }) {
   if (!dimensions.width || !dimensions.height) return null;
-  
+
   const px = point.x * dimensions.width;
   const py = point.y * dimensions.height;
-  
+
   return (
     <div style={{
       position: 'absolute',
@@ -1118,21 +1117,21 @@ function NudgeControls({ point, dimensions, onNudge, onConfirm, isCritical }) {
     }}>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 36px)', gap: 4 }}>
         <div />
-        <button className="icon-button" onClick={() => onNudge(0, -1)} style={{ background: '#333' }}><ChevronUp size={16}/></button>
+        <button className="icon-button" onClick={() => onNudge(0, -1)} style={{ background: '#333' }}><ChevronUp size={16} /></button>
         <div />
-        <button className="icon-button" onClick={() => onNudge(-1, 0)} style={{ background: '#333' }}><ChevronLeft size={16}/></button>
+        <button className="icon-button" onClick={() => onNudge(-1, 0)} style={{ background: '#333' }}><ChevronLeft size={16} /></button>
         <div style={{ width: 36, height: 36 }} />
-        <button className="icon-button" onClick={() => onNudge(1, 0)} style={{ background: '#333' }}><ChevronRight size={16}/></button>
+        <button className="icon-button" onClick={() => onNudge(1, 0)} style={{ background: '#333' }}><ChevronRight size={16} /></button>
         <div />
-        <button className="icon-button" onClick={() => onNudge(0, 1)} style={{ background: '#333' }}><ChevronDown size={16}/></button>
+        <button className="icon-button" onClick={() => onNudge(0, 1)} style={{ background: '#333' }}><ChevronDown size={16} /></button>
         <div />
       </div>
-      <Button 
-        variant={isCritical ? "brass" : "outline"} 
-        onClick={onConfirm} 
+      <Button
+        variant={isCritical ? "brass" : "outline"}
+        onClick={onConfirm}
         style={{ minHeight: 32, padding: '0 var(--space-3)', fontSize: 'var(--text-xs)' }}
       >
-        <Check size={14} style={{ marginRight: 4 }}/> Place
+        <Check size={14} style={{ marginRight: 4 }} /> Place
       </Button>
     </div>
   );

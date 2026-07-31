@@ -1,0 +1,155 @@
+.capability-svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+/* Base styles for the SVG parts (light mode by default) */
+.cap-svg-frame {
+  fill: none;
+  stroke: var(--color-hairline, rgba(42, 31, 22, 0.12));
+  stroke-width: 1;
+}
+
+.cap-svg-corner {
+  fill: none;
+  stroke: var(--color-hairline, rgba(42, 31, 22, 0.12));
+  stroke-width: 1.5;
+}
+
+.cap-svg-fill-strong {
+  fill: var(--color-ink, #2A1F16);
+}
+
+.cap-svg-badge {
+  fill: var(--color-canvas, #F5EFE6);
+  stroke: var(--color-hairline, rgba(42, 31, 22, 0.12));
+  stroke-width: 1;
+}
+
+.cap-svg-badge-text {
+  fill: var(--color-ink, #2A1F16);
+  font-family: var(--font-body, Inter, sans-serif);
+  font-size: 9px;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+}
+
+.cap-svg-skeleton {
+  fill: none;
+  stroke: var(--color-hairline, rgba(42, 31, 22, 0.12));
+  stroke-width: 1;
+  stroke-dasharray: 2 3;
+}
+
+.cap-svg-point {
+  fill: var(--color-ink, #2A1F16);
+}
+
+.cap-svg-row-label {
+  fill: var(--color-ink-muted, #6B5D4F);
+  font-family: var(--font-body, Inter, sans-serif);
+  font-size: 11px;
+}
+
+.cap-svg-track {
+  fill: var(--color-hairline, rgba(42, 31, 22, 0.06));
+}
+
+.cap-svg-row-value {
+  fill: var(--color-ink, #2A1F16);
+  font-family: var(--font-mono, 'JetBrains Mono', monospace);
+  font-size: 11px;
+  text-anchor: end;
+}
+
+.cap-svg-panel {
+  fill: none;
+  stroke: var(--color-hairline, rgba(42, 31, 22, 0.12));
+}
+
+.cap-svg-panel-active {
+  fill: var(--color-canvas, #F5EFE6);
+  stroke: var(--color-brass, #B08D57);
+  stroke-width: 1.5;
+}
+
+.cap-svg-panel-size {
+  fill: var(--color-ink-muted, #6B5D4F);
+  font-family: var(--font-display, Poppins, sans-serif);
+  font-size: 24px;
+  font-weight: 500;
+}
+
+.cap-svg-panel-size-active {
+  fill: var(--color-ink, #2A1F16);
+  font-family: var(--font-display, Poppins, sans-serif);
+  font-size: 24px;
+  font-weight: 600;
+}
+
+.cap-svg-panel-tag {
+  fill: var(--color-ink-muted, #6B5D4F);
+  font-family: var(--font-body, Inter, sans-serif);
+  font-size: 9px;
+}
+
+.cap-svg-panel-tag-active {
+  fill: var(--color-brass, #B08D57);
+  font-family: var(--font-body, Inter, sans-serif);
+  font-size: 9px;
+  font-weight: 600;
+}
+
+.cap-svg-fill-strong-stroke {
+  stroke: var(--color-brass, #B08D57);
+}
+
+.cap-svg-ring-num {
+  fill: var(--color-ink, #2A1F16);
+  font-family: var(--font-display, Poppins, sans-serif);
+  font-size: 28px;
+  font-weight: 600;
+  letter-spacing: -0.03em;
+}
+
+.cap-svg-ring-label {
+  fill: var(--color-ink-muted, #6B5D4F);
+  font-family: var(--font-body, Inter, sans-serif);
+  font-size: 11px;
+}
+
+/* DARK MODE overrides */
+.bento-item--dark .cap-svg-frame,
+.bento-item--dark .cap-svg-corner {
+  stroke: rgba(255, 255, 255, 0.15);
+}
+
+.bento-item--dark .cap-svg-fill-strong {
+  fill: var(--color-canvas, #F5EFE6);
+}
+
+.bento-item--dark .cap-svg-badge {
+  fill: rgba(255, 255, 255, 0.1);
+  stroke: rgba(255, 255, 255, 0.2);
+}
+
+.bento-item--dark .cap-svg-badge-text {
+  fill: var(--color-canvas, #F5EFE6);
+}
+
+.bento-item--dark .cap-svg-track {
+  fill: rgba(255, 255, 255, 0.05);
+}
+
+.bento-item--dark .cap-svg-ring-num {
+  fill: var(--color-canvas, #F5EFE6);
+}
+
+.bento-item--dark .cap-svg-ring-label {
+  fill: rgba(255, 255, 255, 0.6);
+}
+
+.bento-item--dark .cap-svg-fill-strong-stroke {
+  stroke: var(--color-brass, #B08D57);
+}

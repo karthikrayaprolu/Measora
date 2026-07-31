@@ -1,6 +1,6 @@
 """
-POST /v1/sessions          — create a new measurement session
-GET  /v1/sessions/{id}     — get session status
+POST /v1/sessions            create a new measurement session
+GET  /v1/sessions/{id}       get session status
 REQ-000-01 → REQ-000-07, REQ-100-09
 """
 from datetime import datetime, timedelta, timezone

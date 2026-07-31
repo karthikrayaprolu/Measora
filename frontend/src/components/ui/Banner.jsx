@@ -1,14 +1,14 @@
 import { AlertCircle, CheckCircle2, Info, AlertTriangle } from 'lucide-react';
 
 const CONFIG = {
-  info:    { Icon: Info,          label: 'Info' },
+  info: { Icon: Info, label: 'Info' },
   success: { Icon: CheckCircle2, label: 'Success' },
   warning: { Icon: AlertTriangle, label: 'Warning' },
-  error:   { Icon: AlertCircle,  label: 'Error' },
+  error: { Icon: AlertCircle, label: 'Error' },
 };
 
 /**
- * Banner — Measora Design System
+ * Banner   Measora Design System
  * Inline status / alert strip with left-accent border.
  *
  * Variants: info | success | warning | error

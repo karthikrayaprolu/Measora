@@ -1,8 +1,8 @@
 """
-POST /v1/sessions/{session_id}/fast-estimate      — trigger Fast Tier
-GET  /v1/sessions/{session_id}/fast-estimate      — retrieve Fast Tier result
-POST /v1/sessions/{session_id}/accurate-estimate  — trigger Accurate Tier
-GET  /v1/sessions/{session_id}/accurate-estimate  — retrieve Accurate Tier result
+POST /v1/sessions/{session_id}/fast-estimate        trigger Fast Tier
+GET  /v1/sessions/{session_id}/fast-estimate        retrieve Fast Tier result
+POST /v1/sessions/{session_id}/accurate-estimate    trigger Accurate Tier
+GET  /v1/sessions/{session_id}/accurate-estimate    retrieve Accurate Tier result
 REQ-200-01 → REQ-200-08, REQ-300-01 → REQ-300-09
 """
 import os
@@ -46,7 +46,7 @@ def _bg_fast(session_id: str):
 def _bg_accurate(session_id: str):
     """
     Isolated-process wrapper for the accurate estimate job.
-    File deletion is handled inside run_accurate_estimate itself (Q1 fix) —
+    File deletion is handled inside run_accurate_estimate itself (Q1 fix)  
     do NOT add a second shutil.rmtree here, which would race against the
     first deletion and obscure errors.
     """
@@ -270,7 +270,7 @@ def get_accurate_estimate_debug(
     db: Session = Depends(get_db),
 ):
     """
-    Internal debug endpoint — gated behind settings.DEBUG_MEASUREMENTS.
+    Internal debug endpoint   gated behind settings.DEBUG_MEASUREMENTS.
     Returns per-frame pixel heights, scale factors, and raw pre-clip widths
     so that A1–A5 fixes can be verified without modifying application logic.
 

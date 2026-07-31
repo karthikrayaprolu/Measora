@@ -3,7 +3,7 @@ import { AlertCircle } from 'lucide-react';
 import { useProducts } from '../api/hooks';
 import { Button } from '../components/ui/Button';
 
-/* ── Custom SVG motifs — measurement-line based, not stock icons ────── */
+/* ── Custom SVG motifs   measurement-line based, not stock icons ────── */
 
 function ShirtMotif() {
   return (
@@ -12,9 +12,9 @@ function ShirtMotif() {
       <path d="M10 3 L6 7 L2 6 L2 22 L26 22 L26 6 L22 7 L18 3" />
       <path d="M10 3 Q14 6 18 3" />
       {/* Shoulder measurement tick */}
-      <line x1="6" y1="9" x2="6" y2="11" strokeWidth="1" opacity="0.6"/>
-      <line x1="22" y1="9" x2="22" y2="11" strokeWidth="1" opacity="0.6"/>
-      <line x1="6" y1="10" x2="22" y2="10" strokeWidth="0.8" strokeDasharray="2 2" opacity="0.5"/>
+      <line x1="6" y1="9" x2="6" y2="11" strokeWidth="1" opacity="0.6" />
+      <line x1="22" y1="9" x2="22" y2="11" strokeWidth="1" opacity="0.6" />
+      <line x1="6" y1="10" x2="22" y2="10" strokeWidth="0.8" strokeDasharray="2 2" opacity="0.5" />
     </svg>
   );
 }
@@ -25,8 +25,8 @@ function PantsMotif() {
       {/* Trousers silhouette */}
       <path d="M5 3 L23 3 L23 9 L19 9 L16 25 L14 25 L12 9 L9 9 L5 9 Z" />
       {/* Inseam measurement tick */}
-      <line x1="9.5" y1="9" x2="9.5" y2="25" strokeWidth="0.8" strokeDasharray="2 2" opacity="0.5"/>
-      <line x1="8" y1="25" x2="11" y2="25" strokeWidth="1" opacity="0.6"/>
+      <line x1="9.5" y1="9" x2="9.5" y2="25" strokeWidth="0.8" strokeDasharray="2 2" opacity="0.5" />
+      <line x1="8" y1="25" x2="11" y2="25" strokeWidth="1" opacity="0.6" />
     </svg>
   );
 }
@@ -37,9 +37,9 @@ function FootwearMotif() {
       {/* Shoe silhouette */}
       <path d="M4 18 Q4 14 8 12 L14 10 L18 10 Q22 10 23 14 L24 18 Q20 22 4 20 Z" />
       {/* Length tick marks */}
-      <line x1="4" y1="21" x2="24" y2="21" strokeWidth="0.8" strokeDasharray="2 2" opacity="0.5"/>
-      <line x1="4" y1="19.5" x2="4" y2="22.5" strokeWidth="1" opacity="0.6"/>
-      <line x1="24" y1="19.5" x2="24" y2="22.5" strokeWidth="1" opacity="0.6"/>
+      <line x1="4" y1="21" x2="24" y2="21" strokeWidth="0.8" strokeDasharray="2 2" opacity="0.5" />
+      <line x1="4" y1="19.5" x2="4" y2="22.5" strokeWidth="1" opacity="0.6" />
+      <line x1="24" y1="19.5" x2="24" y2="22.5" strokeWidth="1" opacity="0.6" />
     </svg>
   );
 }
@@ -96,37 +96,37 @@ export default function Dashboard() {
       )}
 
       <div className="category-grid" role="list">
-          {CATEGORIES.map((cat) => (
-            <button
-              key={cat.id}
-              role="listitem"
-              className={[
-                'category-card',
-                cat.id === 'footwear' ? 'category-card--full' : '',
-                cat.soon ? 'category-card--soon' : '',
-              ].filter(Boolean).join(' ')}
-              onClick={() => handleSelect(cat.id, cat.soon)}
-              aria-disabled={cat.soon}
-              aria-label={cat.soon ? `${cat.label} — coming soon` : `Measure ${cat.label}`}
-            >
-              <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 'var(--space-3)' }}>
-                <span className="category-card__icon">
-                  <cat.Motif />
+        {CATEGORIES.map((cat) => (
+          <button
+            key={cat.id}
+            role="listitem"
+            className={[
+              'category-card',
+              cat.id === 'footwear' ? 'category-card--full' : '',
+              cat.soon ? 'category-card--soon' : '',
+            ].filter(Boolean).join(' ')}
+            onClick={() => handleSelect(cat.id, cat.soon)}
+            aria-disabled={cat.soon}
+            aria-label={cat.soon ? `${cat.label}   coming soon` : `Measure ${cat.label}`}
+          >
+            <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 'var(--space-3)' }}>
+              <span className="category-card__icon">
+                <cat.Motif />
+              </span>
+              {cat.soon && (
+                <span className="coming-soon-badge" aria-label="In progress">
+                  Coming soon
                 </span>
-                {cat.soon && (
-                  <span className="coming-soon-badge" aria-label="In progress">
-                    Coming soon
-                  </span>
-                )}
-              </div>
+              )}
+            </div>
 
-              <div>
-                <h2 className="category-card__name">{cat.label}</h2>
-                <p className="category-card__measures">{cat.measures}</p>
-              </div>
-            </button>
-          ))}
-        </div>
+            <div>
+              <h2 className="category-card__name">{cat.label}</h2>
+              <p className="category-card__measures">{cat.measures}</p>
+            </div>
+          </button>
+        ))}
+      </div>
     </main>
   );
 }

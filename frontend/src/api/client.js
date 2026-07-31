@@ -37,7 +37,7 @@ client.interceptors.request.use(async (config) => {
       // No token: this will cause a 401 on protected routes.
       // Root cause: Supabase anonymous sign-in likely failed or is disabled.
       console.warn(
-        '[API] No Supabase session found — request will be sent without Authorization header.',
+        '[API] No Supabase session found   request will be sent without Authorization header.',
         'Check: Supabase Dashboard → Authentication → Providers → Anonymous is enabled.',
         'Request:', config.method?.toUpperCase(), config.url
       );

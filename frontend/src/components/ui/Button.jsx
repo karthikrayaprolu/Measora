@@ -1,14 +1,14 @@
 import { Loader2 } from 'lucide-react';
 
 /**
- * Button — Measora Design System
+ * Button   Measora Design System
  *
  * Variants:
- *   primary   — navy fill  (default actions)
- *   brass     — amber fill (precision/capture context ONLY — sparingly)
- *   secondary — muted surface
- *   outline   — bordered ghost
- *   text      — inline link style
+ *   primary     navy fill  (default actions)
+ *   brass       amber fill (precision/capture context ONLY   sparingly)
+ *   secondary   muted surface
+ *   outline     bordered ghost
+ *   text        inline link style
  *
  * States: default | hover | active | disabled | loading
  */

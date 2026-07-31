@@ -1,5 +1,5 @@
 /**
- * ConfidenceBar — Measora Design System (SIGNATURE ELEMENT)
+ * ConfidenceBar   Measora Design System (SIGNATURE ELEMENT)
  *
  * Shows AI confidence as a bar with ruler-tick track.
  * Three tiers:
@@ -43,8 +43,8 @@ export function ConfidenceBar({ value = 0, label, showLabel = true, className = 
               color: tier === 'high'
                 ? 'var(--color-success)'
                 : tier === 'medium'
-                ? 'var(--color-brass)'
-                : 'var(--color-danger)',
+                  ? 'var(--color-brass)'
+                  : 'var(--color-danger)',
               letterSpacing: '0.03em',
             }}>
               {pct}% · {tierLabel}

@@ -18,7 +18,7 @@ logger = logging.getLogger(__name__)
 # A5: Anthropometric range guards.
 # Applied to raw widths/depths in cm BEFORE the ellipse formula.
 # If a value falls outside this range it is almost certainly a scale/unit
-# error — clip it and flag scale_mismatch=True so the caller knows.
+# error   clip it and flag scale_mismatch=True so the caller knows.
 # ---------------------------------------------------------------------------
 BODY_WIDTH_RANGES: Dict[str, Tuple[float, float]] = {
     "chest_w":  (20.0, 80.0),
@@ -68,7 +68,7 @@ def _read_image_dims(file_path: str) -> Tuple[int, int]:
     """
     Read (img_w, img_h) from an image file on disk.
 
-    Raises FileNotFoundError with a clear message if the file is missing —
+    Raises FileNotFoundError with a clear message if the file is missing  
     so that callers get a visible error instead of a silent wrong-dimension
     fallback that would corrupt every subsequent measurement.
     """
@@ -96,7 +96,7 @@ def _get_height_px(
     coordinates (0.0–1.0) to pixel space before any distance computation.
 
     This is aspect-ratio safe: the result is independent of whether the image
-    is 3:4, 9:16, or any other ratio — unlike the old normalized-unit approach
+    is 3:4, 9:16, or any other ratio   unlike the old normalized-unit approach
     which produced heights that varied with aspect ratio and caused ~1.78× scale
     errors on typical 9:16 portrait photos.
 
@@ -105,7 +105,7 @@ def _get_height_px(
       .visibility >= _HEEL_VIS_THRESHOLD.
     - Fallback: ankles (27=left_ankle, 28=right_ankle) when heels are not
       sufficiently visible.
-    - Uses the actual .visibility field — NOT the old ".y > 0" proxy.
+    - Uses the actual .visibility field   NOT the old ".y > 0" proxy.
 
     Returns:
         height_px: estimated head-to-foot height in pixels (always >= 1.0).
@@ -191,7 +191,7 @@ def _visible_group_y(lms: List[FakeLandmark], indices: Tuple[int, ...], label: s
 
 
 # ---------------------------------------------------------------------------
-# A2: Segmentation width reader — returns raw PIXEL widths (not normalized)
+# A2: Segmentation width reader   returns raw PIXEL widths (not normalized)
 # ---------------------------------------------------------------------------
 
 def _get_segmentation_widths(img_path: str, y_ratios: List[float]) -> List[float]:
@@ -199,7 +199,7 @@ def _get_segmentation_widths(img_path: str, y_ratios: List[float]) -> List[float
     For each y_ratio (0.0–1.0 fraction of image height), return the width of
     the person silhouette mask at that row in **raw pixels** (A2 fix).
 
-    Callers are responsible for applying `scale_px_to_cm` to convert to cm —
+    Callers are responsible for applying `scale_px_to_cm` to convert to cm  
     unit conversion is kept in one place (the caller) to prevent drift.
 
     Returns 0.0 for rows where the mask has no body coverage.
@@ -241,7 +241,7 @@ def _get_segmentation_widths(img_path: str, y_ratios: List[float]) -> List[float
             row = binary_mask[y_idx, :]
             indices = np.where(row)[0]
             if len(indices) > 0:
-                # A2 fix: return raw pixel width — do NOT divide by w
+                # A2 fix: return raw pixel width   do NOT divide by w
                 widths_px.append(float(indices[-1] - indices[0]))
             else:
                 widths_px.append(0.0)
@@ -269,7 +269,7 @@ def _get_silhouette_widths(
 
     Torso x-boundary clamping: each row is scanned only within a horizontal
     window derived from the shoulder and hip landmarks (+ 15% margin). This
-    prevents the arms — which are spread away from the body — from being
+    prevents the arms   which are spread away from the body   from being
     counted as part of the torso width.
     """
     image = cv2.imread(img_path, cv2.IMREAD_COLOR)
@@ -375,7 +375,7 @@ def extract_measurements(
             front_img_w, front_img_h = _read_image_dims(front_img_path)
         except Exception as e:
             logger.warning(
-                "Fast Tier: could not read front image dims from %r: %s — "
+                "Fast Tier: could not read front image dims from %r: %s   "
                 "falling back to %dx%d default.",
                 front_img_path, e, _DEFAULT_W, _DEFAULT_H,
             )
@@ -384,7 +384,7 @@ def extract_measurements(
             side_img_w, side_img_h = _read_image_dims(side_img_path)
         except Exception as e:
             logger.warning(
-                "Fast Tier: could not read side image dims from %r: %s — "
+                "Fast Tier: could not read side image dims from %r: %s   "
                 "falling back to %dx%d default.",
                 side_img_path, e, _DEFAULT_W, _DEFAULT_H,
             )
@@ -397,7 +397,7 @@ def extract_measurements(
     scale_side  = user_height_cm / side_height_px   # cm/pixel
 
     logger.info(
-        "Fast Tier scale factors — front: %.4f cm/px (height_px=%.1f), "
+        "Fast Tier scale factors   front: %.4f cm/px (height_px=%.1f), "
         "side: %.4f cm/px (height_px=%.1f)",
         scale_front, front_height_px, scale_side, side_height_px,
     )
@@ -542,7 +542,7 @@ def extract_accurate_measurements(
                              "height_px": round(height_px, 1),
                              "scale_px_to_cm": round(scale_px_to_cm, 6)})
 
-        # y_ratios from normalized landmark coords — used as image-height fractions
+        # y_ratios from normalized landmark coords   used as image-height fractions
         chest_y = _visible_group_y(front, (11, 12), "shoulder")
         hip_y   = _visible_group_y(front, (23, 24), "hip")
         waist_y = chest_y + (hip_y - chest_y) * 0.6
@@ -595,7 +595,7 @@ def extract_accurate_measurements(
         if height_px <= 0:
             continue
 
-        # A4: independent scale factor for the side image — never cross-applied
+        # A4: independent scale factor for the side image   never cross-applied
         scale_px_to_cm = user_height_cm / height_px
         side_sfs.append(scale_px_to_cm)
         side_debug.append({"frame_id": getattr(frame, "id", "?"),
@@ -623,7 +623,7 @@ def extract_accurate_measurements(
     median_sf_front = float(np.median(front_sfs))
     median_sf_side  = float(np.median(side_sfs))
     logger.info(
-        "Accurate Tier scale factors — front: %.4f cm/px, side: %.4f cm/px",
+        "Accurate Tier scale factors   front: %.4f cm/px, side: %.4f cm/px",
         median_sf_front, median_sf_side,
     )
 
@@ -846,7 +846,7 @@ def run_accurate_estimate(session_id: str, db: DBSession) -> None:
             logger.exception("Failed to persist user profile measurements")
 
         # A9 (Q1 resolution): Remove stored image files after processing to avoid
-        # retaining PII images. Deletion is consolidated here — the redundant
+        # retaining PII images. Deletion is consolidated here   the redundant
         # shutil.rmtree in _bg_accurate (estimates.py) has been removed.
         try:
             all_frames = frames_a + frames_b

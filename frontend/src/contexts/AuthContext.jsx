@@ -8,9 +8,9 @@ const AuthContext = createContext();
 const SIGNED_OUT_KEY = 'measora_signed_out';
 
 export function AuthProvider({ children }) {
-  const [session, setSession]     = useState(null);
-  const [user, setUser]           = useState(null);
-  const [loading, setLoading]     = useState(true);
+  const [session, setSession] = useState(null);
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
   const [authError, setAuthError] = useState(null);
 
   // Guards that survive Strict Mode's double-invocation of effects:
@@ -18,7 +18,7 @@ export function AuthProvider({ children }) {
   // - subscriptionRef: holds the single active Supabase listener so StrictMode's
   //   second effect run does NOT attach a second subscription (which would cause
   //   Supabase to replay SIGNED_IN a second time, producing duplicate log lines).
-  const initializedRef  = useRef(false);
+  const initializedRef = useRef(false);
   const subscriptionRef = useRef(null);
 
   useEffect(() => {
@@ -87,16 +87,16 @@ export function AuthProvider({ children }) {
             return;
           }
 
-          // User explicitly signed out — skip anonymous sign-in.
+          // User explicitly signed out   skip anonymous sign-in.
           if (sessionStorage.getItem(SIGNED_OUT_KEY)) {
             if (import.meta.env.DEV) {
-              console.log('[Auth] User explicitly signed out — skipping anonymous sign-in.');
+              console.log('[Auth] User explicitly signed out   skipping anonymous sign-in.');
             }
             setLoading(false);
             return;
           }
 
-          // No session at all — attempt anonymous sign-in.
+          // No session at all   attempt anonymous sign-in.
           if (import.meta.env.DEV) {
             console.log('[Auth] No session found, attempting anonymous sign-in...');
           }
@@ -155,7 +155,7 @@ export function AuthProvider({ children }) {
     // again it won't create a new anonymous session.
     sessionStorage.setItem(SIGNED_OUT_KEY, '1');
     const result = await supabase.auth.signOut();
-    // Clear local state immediately — don't wait for onAuthStateChange.
+    // Clear local state immediately   don't wait for onAuthStateChange.
     setSession(null);
     setUser(null);
     return result;

@@ -1,6 +1,6 @@
 """
-POST /v1/sessions/{session_id}/frames                    — upload a captured frame
-POST /v1/sessions/{session_id}/frames/{frame_id}/validate — validate an uploaded frame
+POST /v1/sessions/{session_id}/frames                      upload a captured frame
+POST /v1/sessions/{session_id}/frames/{frame_id}/validate   validate an uploaded frame
 REQ-100-07, REQ-100-08, REQ-100-04, REQ-100-05, REQ-100-06
 """
 import json

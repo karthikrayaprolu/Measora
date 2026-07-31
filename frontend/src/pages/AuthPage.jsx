@@ -12,7 +12,7 @@ function FormInput({ label, id, type, value, onChange, error, hint, icon, autoCo
   const inputId = id || generatedId;
   const errorId = `${inputId}-error`;
   const hintId = `${inputId}-hint`;
-  
+
   const isPassword = type === 'password';
   const inputType = isPassword && showPassword ? 'text' : type;
 
@@ -21,7 +21,7 @@ function FormInput({ label, id, type, value, onChange, error, hint, icon, autoCo
       <label htmlFor={inputId} className="text-label" style={{ marginBottom: 'var(--space-1)' }}>
         {label}
       </label>
-      
+
       <div style={{ position: 'relative' }}>
         <input
           id={inputId}
@@ -46,7 +46,7 @@ function FormInput({ label, id, type, value, onChange, error, hint, icon, autoCo
             transition: 'border-color 150ms ease, box-shadow 150ms ease'
           }}
         />
-        
+
         {isPassword && (
           <button
             type="button"
@@ -92,12 +92,12 @@ export default function AuthPage() {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  
+
   const [loading, setLoading] = useState(false);
   const [formError, setFormError] = useState(null);
   const [fieldErrors, setFieldErrors] = useState({});
   const [successMsg, setSuccessMsg] = useState(null);
-  
+
   const navigate = useNavigate();
   const { user } = useAuth();
   const [resetSent, setResetSent] = useState(false);
@@ -134,7 +134,7 @@ export default function AuthPage() {
       errors.name = 'Please enter your full name';
       isValid = false;
     }
-    
+
     if (!email) {
       errors.email = 'Email address is required';
       isValid = false;
@@ -142,7 +142,7 @@ export default function AuthPage() {
       errors.email = 'Enter a valid email address';
       isValid = false;
     }
-    
+
     if (!password) {
       errors.password = 'Password is required';
       isValid = false;
@@ -159,9 +159,9 @@ export default function AuthPage() {
     e.preventDefault();
     setFormError(null);
     setSuccessMsg(null);
-    
+
     if (!validateForm()) return;
-    
+
     setLoading(true);
 
     try {
@@ -173,8 +173,8 @@ export default function AuthPage() {
         }
         navigate('/app', { replace: true });
       } else {
-        const { error } = await supabase.auth.signUp({ 
-          email, 
+        const { error } = await supabase.auth.signUp({
+          email,
           password,
           options: { data: { full_name: name } }
         });
@@ -199,9 +199,9 @@ export default function AuthPage() {
 
   return (
     <div className="app-page" style={{ display: 'grid', placeItems: 'center', padding: 'var(--space-6)', minHeight: '100dvh' }}>
-      
+
       <div style={{ width: '100%', maxWidth: '440px' }}>
-        
+
         {/* Brand Header */}
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginBottom: 'var(--space-8)' }}>
           <Link to="/" className="brand" aria-label="Return to Measora home" style={{ marginBottom: 'var(--space-3)' }}>
@@ -226,11 +226,11 @@ export default function AuthPage() {
         <div className="card" style={{ position: 'relative' }}>
           {/* Subtle signature element bounding the top of the interaction */}
           <div className="ruler-ticks" style={{ height: '14px', borderBottom: '1px solid var(--color-border)', marginBottom: 'var(--space-6)' }} aria-hidden="true" />
-          
+
           <div style={{ padding: '0 var(--space-6) var(--space-6)' }}>
-            
+
             <form onSubmit={handleSubmit} noValidate style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-4)' }}>
-              
+
               {/* Form-level Messaging */}
               {formError && (
                 <div style={{ padding: 'var(--space-3)', background: 'var(--color-danger-bg)', color: 'var(--color-danger)', borderRadius: 'var(--radius-sm)', fontSize: 'var(--text-sm)', display: 'flex', alignItems: 'flex-start', gap: 'var(--space-2)' }} role="alert">
@@ -267,7 +267,7 @@ export default function AuthPage() {
                 autoComplete="email"
                 autoFocus={isLogin}
               />
-              
+
               <FormInput
                 label="Password"
                 type="password"
@@ -282,7 +282,7 @@ export default function AuthPage() {
                 <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '-4px' }}>
                   {resetSent ? (
                     <span style={{ color: 'var(--color-success)', fontSize: 'var(--text-sm)' }}>
-                      Reset link sent — check your inbox.
+                      Reset link sent   check your inbox.
                     </span>
                   ) : (
                     <button
@@ -298,9 +298,9 @@ export default function AuthPage() {
               )}
 
               {/* Submit Button */}
-              <button 
-                type="submit" 
-                className="button button--primary button--full" 
+              <button
+                type="submit"
+                className="button button--primary button--full"
                 disabled={loading}
                 style={{ marginTop: 'var(--space-2)' }}
               >
@@ -313,7 +313,7 @@ export default function AuthPage() {
               <span className="text-body-sm" style={{ color: 'var(--color-ink-muted)' }}>
                 {isLogin ? "Don't have an account? " : "Already have an account? "}
               </span>
-              <button 
+              <button
                 onClick={toggleMode}
                 style={{ background: 'none', border: 'none', color: 'var(--color-ink)', fontWeight: 600, cursor: 'pointer', padding: 0 }}
                 className="text-body-sm"
@@ -321,7 +321,7 @@ export default function AuthPage() {
                 {isLogin ? 'Sign up' : 'Sign in'}
               </button>
             </div>
-            
+
           </div>
         </div>
       </div>

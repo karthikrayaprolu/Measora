@@ -1,5 +1,5 @@
 /**
- * MeasurementRow — Measora Design System
+ * MeasurementRow   Measora Design System
  *
  * Displays a single body measurement in a list.
  * Label uses body type (Plus Jakarta Sans, muted).
@@ -34,7 +34,7 @@ export function MeasurementRow({ label, value, unit = 'cm', confidence, isLast =
 }
 
 /**
- * MeasurementCard — wraps a list of MeasurementRows in a
+ * MeasurementCard   wraps a list of MeasurementRows in a
  * card with the signature ruler-tick top border.
  *
  * Usage:
