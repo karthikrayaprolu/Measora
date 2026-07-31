@@ -1,0 +1,82 @@
+/* buttons-premium.css */
+
+/* Global Premium Button Enhancements */
+.button, .lp-nav-btn {
+  border-radius: 99px !important;
+  font-family: var(--font-sans);
+  font-weight: 600 !important;
+  letter-spacing: 0.3px;
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s cubic-bezier(0.2, 0.8, 0.2, 1) !important;
+}
+
+/* The Shine Effect on Hover */
+.button::after, .lp-nav-btn::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -150%;
+  width: 50%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.15), transparent);
+  transform: skewX(-20deg);
+  transition: left 0.7s ease;
+}
+
+.button:hover::after, .lp-nav-btn:hover::after {
+  left: 200%;
+}
+
+.button:active, .lp-nav-btn:active {
+  transform: scale(0.96) !important;
+}
+
+/* Primary and CTA Buttons (The Hero button, etc) */
+.button.lp-cta-primary,
+.button--primary,
+.lp-nav-btn--filled {
+  background: var(--color-ink, #2A1F16) !important;
+  color: var(--color-canvas, #F5EFE6) !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  box-shadow: 0 10px 24px rgba(42, 31, 22, 0.15) !important;
+}
+
+.button.lp-cta-primary,
+.button--primary {
+  padding: 0 2rem !important;
+}
+
+.button.lp-cta-primary:hover,
+.button--primary:hover,
+.lp-nav-btn--filled:hover {
+  background: #1a130e !important;
+  box-shadow: 0 14px 32px rgba(42, 31, 22, 0.25) !important;
+  transform: translateY(-2px) !important;
+  border-color: rgba(176, 141, 87, 0.5) !important; /* Subtle brass glow on border */
+}
+
+/* Icons inside buttons */
+.button svg {
+  transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.button:hover svg {
+  transform: translateX(4px);
+}
+
+/* Outline Buttons (Secondary actions) */
+.button--outline {
+  background: rgba(255, 255, 255, 0.2) !important;
+  backdrop-filter: blur(8px);
+  border: 1px solid var(--color-hairline, rgba(42, 31, 22, 0.12)) !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.02) !important;
+}
+
+.button--outline:hover {
+  background: rgba(255, 255, 255, 0.9) !important;
+  border-color: var(--color-brass, #B08D57) !important;
+  color: var(--color-brass, #B08D57) !important;
+  transform: translateY(-1px) !important;
+  box-shadow: 0 8px 24px rgba(176, 141, 87, 0.1) !important;
+}

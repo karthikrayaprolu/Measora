@@ -11,6 +11,9 @@ import './cta-cards.css';
 import './privacy-visual.css';
 import './testimonials.css';
 import './faq-visual.css';
+import './workflow-dynamic.css';
+import './buttons-premium.css';
+import './scrollbar-premium.css';
 import { Navbar } from './components/Navbar';
 
 const workflowSteps = [
@@ -96,14 +99,14 @@ export default function LandingPage() {
             </div>
           </div>
 
-          <ul className="lp-trust-bar" aria-label="Measora at a glance">
+          {/* <ul className="lp-trust-bar" aria-label="Measora at a glance">
             {trustStats.map((stat) => (
               <li key={stat.label} className="lp-trust-bar__item">
                 <span className="lp-trust-bar__value">{stat.value}</span>
                 <span className="lp-trust-bar__label">{stat.label}</span>
               </li>
             ))}
-          </ul>
+          </ul> */}
         </div>
       </section>
 
@@ -333,38 +336,15 @@ function Workflow() {
   }, []);
 
   useEffect(() => {
-    if (active === targetActive) return undefined;
-    if (reducedMotion) {
+    if (active !== targetActive) {
       setActive(targetActive);
-      return undefined;
     }
-    const timer = window.setTimeout(() => {
-      setActive((current) => current + (targetActive > current ? 1 : -1));
-    }, 130);
-    return () => window.clearTimeout(timer);
-  }, [active, targetActive, reducedMotion]);
+  }, [active, targetActive]);
 
   return (
     <div className="workflow-split" ref={sectionRef}>
       <div className="workflow-split__visual" aria-hidden="true">
-        <div className="workflow-img-frame">
-          <img src={heroImg} alt="" className="workflow-img" width="640" height="800" loading="lazy" decoding="async" />
-          <div className="workflow-bubble">
-            <span className="workflow-bubble__dot" />
-            <span className="workflow-bubble__label">Take your measurements</span>
-          </div>
-          <div className="workflow-preview-card">
-            <span className="workflow-preview-card__title">Measora Scan</span>
-            <div className="workflow-preview-card__rows">
-              {['Chest', 'Waist', 'Hip'].map((m) => (
-                <div key={m} className="workflow-preview-card__row">
-                  <span className="workflow-preview-card__key">{m}</span>
-                  <span className="workflow-preview-card__bar" />
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
+        <WorkflowDynamicVisual activeIndex={active} />
       </div>
 
       <div className="workflow-split__steps">
@@ -494,6 +474,82 @@ function FAQVisual() {
           <span className="fv-dot"></span>
           <span className="fv-dot"></span>
           <span className="fv-dot"></span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function WorkflowDynamicVisual({ activeIndex }) {
+  return (
+    <div className="wd-visual-container">
+      {/* Step 0: Height */}
+      <div className="wd-layer" data-active={activeIndex === 0}>
+        <div className="wd-ruler">
+          <div className="wd-ruler-track">
+            <div className="wd-ruler-fill" />
+            <div className="wd-ruler-handle">178</div>
+          </div>
+        </div>
+      </div>
+
+      {/* Step 1 & 2: Photos */}
+      <div className="wd-layer" data-active={activeIndex === 1 || activeIndex === 2} data-step={activeIndex}>
+        <div className="wd-silhouette">
+          <div className="wd-person" />
+        </div>
+        <div className="wd-badge" style={{ marginTop: '20px' }}>
+          <Camera size={16} /> {activeIndex === 1 ? 'Front view' : 'Side profile'}
+        </div>
+      </div>
+
+      {/* Step 3 & 4: Landmarks & Engine */}
+      <div className="wd-layer" data-active={activeIndex === 3 || activeIndex === 4} data-step={activeIndex}>
+        <div className="wd-landmarks">
+          <svg viewBox="0 0 100 180">
+            <path className="wd-line" d="M30 40 L70 40 L80 90 L20 90 Z" fill="none" />
+            <path className="wd-line" d="M50 40 L50 140" fill="none" />
+            <circle className="wd-dot" cx="50" cy="20" r="4" />
+            <circle className="wd-dot" cx="30" cy="40" r="4" />
+            <circle className="wd-dot" cx="70" cy="40" r="4" />
+            <circle className="wd-dot" cx="20" cy="90" r="4" />
+            <circle className="wd-dot" cx="80" cy="90" r="4" />
+            <circle className="wd-dot" cx="40" cy="140" r="4" />
+            <circle className="wd-dot" cx="60" cy="140" r="4" />
+          </svg>
+        </div>
+        <div className="wd-badge" style={{ marginTop: '20px' }}>
+          {activeIndex === 3 ? <Target size={16} /> : <Sparkles size={16} />}
+          {activeIndex === 3 ? 'Mapping points' : 'Extracting geometry'}
+        </div>
+      </div>
+
+      {/* Step 5: Brand Match */}
+      <div className="wd-layer" data-active={activeIndex === 5}>
+        <div className="wd-brand-match">
+          <div className="wd-shirt-icon">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20.38 3.46L16 2a8.59 8.59 0 0 1-8 0L3.62 3.46a2 2 0 0 0-1.34 2.23l.58 3.47a1 1 0 0 0 .99.84H6v10c0 1.1.9 2 2 2h8a2 2 0 0 0 2-2V10h2.15a1 1 0 0 0 .99-.84l.58-3.47a2 2 0 0 0-1.34-2.23z"></path></svg>
+          </div>
+          <div className="wd-brand-label">Brand Fit Data</div>
+        </div>
+      </div>
+
+      {/* Step 6: Confidence */}
+      <div className="wd-layer" data-active={activeIndex === 6}>
+        <div className="wd-radial-progress">
+          <svg viewBox="0 0 100 100">
+            <circle className="wd-radial-bg" cx="50" cy="50" r="40" />
+            <circle className="wd-radial-fill" cx="50" cy="50" r="40" />
+          </svg>
+          <span>98%</span>
+        </div>
+      </div>
+
+      {/* Step 7: Recommended fit */}
+      <div className="wd-layer" data-active={activeIndex === 7}>
+        <div className="wd-fit-card">
+          <div className="wd-fit-size">M</div>
+          <div className="wd-fit-badge">Just Right</div>
         </div>
       </div>
     </div>

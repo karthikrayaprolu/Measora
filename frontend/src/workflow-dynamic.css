@@ -1,0 +1,214 @@
+/* workflow-dynamic.css */
+
+.wd-visual-container {
+  position: relative;
+  width: 100%;
+  max-width: 400px;
+  aspect-ratio: 1;
+  margin: 0 auto;
+  background: rgba(255, 255, 255, 0.5);
+  border: 1px solid var(--color-hairline, rgba(42, 31, 22, 0.12));
+  border-radius: 32px;
+  overflow: hidden;
+  box-shadow: 0 20px 40px rgba(0,0,0,0.04);
+  backdrop-filter: blur(12px);
+}
+
+@media (max-width: 900px) {
+  .wd-visual-container {
+    aspect-ratio: 1;
+  }
+}
+
+.wd-layer {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transform: scale(0.95);
+  transition: opacity 0.6s cubic-bezier(0.2, 0.8, 0.2, 1), transform 0.6s cubic-bezier(0.2, 0.8, 0.2, 1);
+  pointer-events: none;
+}
+
+.wd-layer[data-active="true"] {
+  opacity: 1;
+  transform: scale(1.15);
+}
+
+/* Layer 0: Ruler Slider */
+.wd-ruler-track {
+  width: 4px;
+  height: 160px;
+  background: rgba(42, 31, 22, 0.1);
+  position: relative;
+  border-radius: 2px;
+}
+.wd-ruler-fill {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 70%;
+  background: var(--color-brass);
+  border-radius: 2px;
+}
+.wd-ruler-handle {
+  position: absolute;
+  top: 30%;
+  left: -20px;
+  width: 44px;
+  height: 20px;
+  background: var(--color-canvas);
+  border: 2px solid var(--color-brass);
+  border-radius: 10px;
+  transform: translateY(-50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  font-weight: bold;
+}
+
+/* Layer 1 & 2: Camera Silhouette */
+.wd-silhouette {
+  width: 120px;
+  height: 200px;
+  border-radius: 60px 60px 0 0;
+  border: 2px dashed var(--color-brass);
+  position: relative;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding-bottom: 20px;
+}
+.wd-person {
+  width: 60px;
+  height: 140px;
+  background: var(--color-ink-muted);
+  border-radius: 30px 30px 10px 10px;
+  transition: width 0.5s ease;
+}
+.wd-layer[data-step="2"] .wd-person {
+  width: 30px; /* Turns to side profile */
+}
+
+/* Layer 3 & 4: Landmarks & Engine */
+.wd-landmarks {
+  position: relative;
+  width: 100px;
+  height: 180px;
+}
+.wd-landmarks svg {
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+.wd-dot {
+  fill: var(--color-brass);
+}
+.wd-line {
+  stroke: var(--color-brass);
+  stroke-width: 2;
+  stroke-dasharray: 4;
+  opacity: 0;
+}
+.wd-layer[data-step="4"] .wd-line {
+  opacity: 1; /* Engine calculates spatial relations */
+  transition: opacity 0.5s ease 0.3s;
+}
+
+/* Layer 5: Brand Match */
+.wd-brand-match {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+.wd-shirt-icon {
+  width: 64px;
+  height: 64px;
+  background: var(--color-canvas);
+  border: 1px solid var(--color-hairline);
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  font-weight: bold;
+}
+.wd-brand-label {
+  padding: 8px 16px;
+  background: var(--color-brass);
+  color: #fff;
+  border-radius: 20px;
+  font-weight: bold;
+}
+
+/* Layer 6: Confidence */
+.wd-radial-progress {
+  position: relative;
+  width: 120px;
+  height: 120px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  font-weight: bold;
+  color: var(--color-ink);
+}
+.wd-radial-progress svg {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  transform: rotate(-90deg);
+}
+.wd-radial-bg {
+  fill: none;
+  stroke: rgba(42, 31, 22, 0.1);
+  stroke-width: 8;
+}
+.wd-radial-fill {
+  fill: none;
+  stroke: var(--color-brass);
+  stroke-width: 8;
+  stroke-linecap: round;
+  stroke-dasharray: 251;
+  stroke-dashoffset: 251;
+  transition: stroke-dashoffset 1.5s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+.wd-layer[data-active="true"] .wd-radial-fill {
+  stroke-dashoffset: 5; /* approx 98% filled */
+}
+
+/* Layer 7: Recommended Fit */
+.wd-fit-card {
+  background: var(--color-canvas);
+  border: 1px solid var(--color-brass);
+  padding: 2rem;
+  border-radius: 24px;
+  box-shadow: 0 20px 40px rgba(176, 141, 87, 0.15);
+  text-align: center;
+}
+.wd-fit-size {
+  font-size: 3rem;
+  font-weight: 800;
+  color: var(--color-ink);
+  line-height: 1;
+}
+.wd-fit-badge {
+  display: inline-block;
+  margin-top: 1rem;
+  padding: 4px 12px;
+  background: rgba(176, 141, 87, 0.1);
+  color: var(--color-brass);
+  border-radius: 16px;
+  font-weight: 600;
+  font-size: 0.9rem;
+}

@@ -1,0 +1,32 @@
+/* scrollbar-premium.css */
+
+/* Webkit Scrollbar Styling (Chrome, Safari, Edge) */
+::-webkit-scrollbar {
+  width: 12px;
+  height: 12px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--color-canvas, #F5EFE6);
+  border-radius: 8px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(176, 141, 87, 0.4); /* Subtle brass color */
+  border-radius: 20px;
+  border: 3px solid var(--color-canvas, #F5EFE6); /* Creates a padded pill effect */
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(176, 141, 87, 0.7); /* Darker brass on hover */
+}
+
+::-webkit-scrollbar-corner {
+  background: var(--color-canvas, #F5EFE6);
+}
+
+/* Firefox Scrollbar */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(176, 141, 87, 0.5) var(--color-canvas, #F5EFE6);
+}
