@@ -28,7 +28,32 @@ export default function HistoryPage() {
   return (
     <main className="app-main">
       <header className="page-header"><div><p className="page-eyebrow">Your fittings</p><h1 className="page-title">History</h1></div></header>
-      {isLoading && <div className="card">Loading…</div>}
+      {isLoading && (
+        <div style={{ display: 'grid', gap: 24 }}>
+          {[1, 2].map((i) => (
+            <div key={i} className="history-card" style={{ pointerEvents: 'none' }}>
+              <div className="history-card__header">
+                <div className="history-card__title">
+                  <div className="skeleton" style={{ width: 140, height: 24, marginBottom: 8 }}></div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
+                    <div className="skeleton" style={{ width: 120, height: 16 }}></div>
+                    <div className="skeleton" style={{ width: 60, height: 22, borderRadius: 999 }}></div>
+                  </div>
+                </div>
+                <div className="skeleton" style={{ width: 48, height: 48, borderRadius: 10 }}></div>
+              </div>
+              <div className="history-card__body">
+                {[1, 2, 3, 4, 5, 6].map((j) => (
+                  <div key={j} className="history-measure" style={{ padding: '14px 0', borderBottom: j === 6 ? 'none' : '1px solid var(--color-border)', display: 'flex', justifyContent: 'space-between' }}>
+                    <div className="skeleton" style={{ width: 80, height: 16 }}></div>
+                    <div className="skeleton" style={{ width: 60, height: 20 }}></div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
       {!isLoading && (!items || items.length === 0) && (
         <div className="empty-state card">
           <span className="empty-state__icon"><History /></span>
